@@ -1,0 +1,9 @@
+# Hosted-build placement (#188 Phase 4): the agent's zero-initialized statics
+# (57 KB FlowEngine singleton + C2 buffers, ~78 KB total) go to PSRAM so they
+# don't starve Brookesia's internal-DMA display buffers. Requires
+# CONFIG_SPIRAM_ALLOW_BSS_SEG_EXTERNAL_MEMORY=y (on in the board defaults).
+# All of this data is task-context only — never touched from ISRs or DMA.
+[mapping:microfi_agent]
+archive: libmicrofi_agent.a
+entries:
+    * (extram_bss)

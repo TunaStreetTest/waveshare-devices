@@ -1,0 +1,25 @@
+{
+    "type": "viewScreen",
+    "id": "home",
+    "style": {
+        "bgColor": "#000000"
+    },
+    "layout": {
+        "type": "flex",
+        "flexFlow": "column",
+        "mainAlign": "center",
+        "crossAlign": "center"
+    },
+    "children": [
+        {
+            "type": "label",
+            "id": "greeting",
+            "style": {
+                "textColor": "#FFFFFF"
+            },
+            "labelProps": {
+                "text": "hello from tuna street"
+            }
+        }
+    ]
+}

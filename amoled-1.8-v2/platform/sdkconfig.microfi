@@ -1,0 +1,11 @@
+# MicroFi agent + platform config appended to the super example's sdkconfig.
+# WiFi credentials do NOT go here — put them in sdkconfig.local next to this
+# file (gitignored): CONFIG_MICROFI_WIFI_SSID / CONFIG_MICROFI_WIFI_PASSWORD.
+CONFIG_MICROFI_WIFI_ADOPT_EXISTING=y
+CONFIG_MICROFI_AGENT_CLASS="AMOLED"
+CONFIG_MICROFI_C2_HEARTBEAT_URL="http://192.168.1.121:10090/efm/api/c2-protocol/heartbeat"
+CONFIG_MICROFI_C2_ACK_URL="http://192.168.1.121:10090/efm/api/c2-protocol/acknowledge"
+CONFIG_MICROFI_LIVENESS_LED=n
+CONFIG_MICROFI_LITTLEFS_FORMAT_ON_MOUNT_FAIL=n
+# 368x448 splash decodes to ~659 KB; stock 512000 cache silently drops it
+CONFIG_LV_CACHE_DEF_SIZE=720000
