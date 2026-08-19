@@ -95,6 +95,14 @@ extern "C" void app_main(void)
             }
         }
 
+        /* Agent status tile (#185): the read-only "Agent" launcher app lives
+         * in components/agent_status_tile. It registers itself through the
+         * IAppProvider plugin registry (kept alive by that component's
+         * "-u agent_status_tile_provider_symbol"), and system_instance->init()
+         * above installed it via install_registered_apps (Config default) --
+         * the same path as the stock Settings/Files apps, so there is no
+         * explicit install call here. */
+
         /* MicroFi EFM agent (#188 Phase 4): own task so its WiFi-adopt wait
          * never blocks Brookesia setup. Agent tasks outlive this launcher. */
         xTaskCreate([](void*) {

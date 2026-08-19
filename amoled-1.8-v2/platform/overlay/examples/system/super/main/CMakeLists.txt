@@ -5,7 +5,7 @@ idf_component_register(
     SRCS ${SRCS}
     INCLUDE_DIRS "."
     EMBED_TXTFILES ${EMBEDDED_FILES}
-    PRIV_REQUIRES microfi_agent
+    PRIV_REQUIRES microfi_agent agent_status_tile
 )
 
 get_property(brookesia_runtime_app_stage_targets GLOBAL PROPERTY BROOKESIA_RUNTIME_APP_STAGE_TARGETS)

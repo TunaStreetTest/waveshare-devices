@@ -1,0 +1,287 @@
+{
+    "type": "viewScreen",
+    "id": "home",
+    "style": {
+        "bgColor": "#000000",
+        "padding": 0
+    },
+    "commonProps": {
+        "scrollable": false,
+        "clickable": true
+    },
+    "layout": {
+        "type": "flex",
+        "flexFlow": "column",
+        "mainAlign": "start",
+        "crossAlign": "center",
+        "gap": 4
+    },
+    "events": [
+        {
+            "type": "gesture",
+            "action": "xviewer.gesture"
+        }
+    ],
+    "children": [
+        {
+            "type": "label",
+            "id": "brand",
+            "placement": {
+                "mode": "flow",
+                "width": 344,
+                "height": 22
+            },
+            "style": {
+                "textColor": "#71767b",
+                "fontSize": 14,
+                "textAlign": "center"
+            },
+            "labelProps": {
+                "text": "X Viewer"
+            }
+        },
+        {
+            "type": "image",
+            "id": "card_img",
+            "placement": {
+                "mode": "flow",
+                "width": 368,
+                "height": 220
+            },
+            "commonProps": {
+                "hidden": true,
+                "clickable": false,
+                "scrollable": false
+            },
+            "imageProps": {
+                "innerAlign": "contain"
+            },
+            "bindings": {
+                "commonProps.hidden": "imgHidden"
+            }
+        },
+        {
+            "type": "label",
+            "id": "post_text",
+            "placement": {
+                "mode": "flow",
+                "width": 344,
+                "flexGrow": 1
+            },
+            "style": {
+                "textColor": "#e7e9ea",
+                "fontSize": 16
+            },
+            "labelProps": {
+                "text": "loading feed..."
+            }
+        },
+        {
+            "type": "label",
+            "id": "status",
+            "placement": {
+                "mode": "flow",
+                "width": 344,
+                "height": 18
+            },
+            "style": {
+                "textColor": "#f4212e",
+                "fontSize": 12
+            },
+            "labelProps": {
+                "text": ""
+            }
+        },
+        {
+            "type": "container",
+            "id": "bar",
+            "placement": {
+                "mode": "flow",
+                "width": 360,
+                "height": 48
+            },
+            "style": {
+                "bgColor": "#000000",
+                "padding": 6
+            },
+            "commonProps": {
+                "scrollable": false,
+                "clickable": false
+            },
+            "layout": {
+                "type": "flex",
+                "flexFlow": "row",
+                "mainAlign": "spaceBetween",
+                "crossAlign": "center",
+                "gap": 4
+            },
+            "children": [
+                {
+                    "type": "label",
+                    "id": "nav_prev",
+                    "placement": {
+                        "mode": "flow",
+                        "width": 40,
+                        "height": 36
+                    },
+                    "style": {
+                        "textColor": "#71767b",
+                        "fontSize": 26,
+                        "textAlign": "center"
+                    },
+                    "commonProps": {
+                        "clickable": true
+                    },
+                    "labelProps": {
+                        "text": "«"
+                    },
+                    "events": [
+                        {
+                            "type": "clicked",
+                            "effects": [
+                                {
+                                    "type": "emitAction",
+                                    "action": "xviewer.prev",
+                                    "requireValidPress": true
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "container",
+                    "id": "likebox",
+                    "placement": {
+                        "mode": "flow",
+                        "width": 76,
+                        "height": 36
+                    },
+                    "style": {
+                        "bgColor": "#000000",
+                        "padding": 2
+                    },
+                    "commonProps": {
+                        "clickable": true,
+                        "scrollable": false
+                    },
+                    "layout": {
+                        "type": "flex",
+                        "flexFlow": "row",
+                        "mainAlign": "start",
+                        "crossAlign": "center",
+                        "gap": 6
+                    },
+                    "events": [
+                        {
+                            "type": "clicked",
+                            "effects": [
+                                {
+                                    "type": "emitAction",
+                                    "action": "xviewer.like",
+                                    "requireValidPress": true
+                                }
+                            ]
+                        }
+                    ],
+                    "children": [
+                        {
+                            "type": "image",
+                            "id": "heart",
+                            "placement": {
+                                "mode": "flow",
+                                "width": 28,
+                                "height": 28
+                            },
+                            "commonProps": {
+                                "clickable": false
+                            },
+                            "imageProps": {
+                                "src": "${image.heart_off}",
+                                "innerAlign": "contain"
+                            }
+                        },
+                        {
+                            "type": "label",
+                            "id": "likes",
+                            "style": {
+                                "textColor": "#71767b",
+                                "fontSize": 15
+                            },
+                            "labelProps": {
+                                "text": "0"
+                            },
+                            "bindings": {
+                                "style.textColor": "likeColor"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "type": "label",
+                    "id": "reposts",
+                    "style": {
+                        "textColor": "#71767b",
+                        "fontSize": 13
+                    },
+                    "labelProps": {
+                        "text": "0 rp"
+                    }
+                },
+                {
+                    "type": "label",
+                    "id": "views",
+                    "style": {
+                        "textColor": "#71767b",
+                        "fontSize": 13
+                    },
+                    "labelProps": {
+                        "text": "0 vw"
+                    }
+                },
+                {
+                    "type": "label",
+                    "id": "pos",
+                    "style": {
+                        "textColor": "#71767b",
+                        "fontSize": 13
+                    },
+                    "labelProps": {
+                        "text": "-/-"
+                    }
+                },
+                {
+                    "type": "label",
+                    "id": "nav_next",
+                    "placement": {
+                        "mode": "flow",
+                        "width": 40,
+                        "height": 36
+                    },
+                    "style": {
+                        "textColor": "#71767b",
+                        "fontSize": 26,
+                        "textAlign": "center"
+                    },
+                    "commonProps": {
+                        "clickable": true
+                    },
+                    "labelProps": {
+                        "text": "»"
+                    },
+                    "events": [
+                        {
+                            "type": "clicked",
+                            "effects": [
+                                {
+                                    "type": "emitAction",
+                                    "action": "xviewer.next",
+                                    "requireValidPress": true
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
