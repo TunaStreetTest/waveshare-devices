@@ -26,6 +26,7 @@
     var FEED_REFRESH_MS = 60000;
     var RETRY_MS = 10000;
     var MAX_TEXT_CHARS = 420;
+    var NAV_COOLDOWN_MS = 350;  // one continuous drag emits many gesture events
     var IMG_SLOTS = 3; // at most 3 JPEGs on flash, rotating fixed names
     var COLOR_MUTED = "#71767b";
     var COLOR_LIKED = "#f91880";
@@ -39,6 +40,7 @@
     var slotCursor = 0;
     var shownSlot = -1;         // slot whose file the image view currently displays
     var likeInFlight = false;
+    var lastNavMs = 0;          // gesture debounce clock (Date.now deltas)
     var feedInFlight = false;
     var refreshTimerId = null;
     var retryTimerId = null;
@@ -479,10 +481,17 @@
                     // deliberately ignored so the system's swipe-up home
                     // gesture (handled at the display-port layer) is never
                     // interfered with.
-                    if (payload.direction === "left") {
-                        goTo(idx + 1);
-                    } else if (payload.direction === "right") {
-                        goTo(idx - 1);
+                    if (payload.direction === "left" || payload.direction === "right") {
+                        // Debounce: the touch layer emits multiple gesture
+                        // events per continuous drag; only the first within
+                        // the cooldown window navigates (same guard idea as
+                        // likeInFlight). Taps (next/prev/like) stay immediate.
+                        var t = Date.now();
+                        // t < lastNavMs = clock stepped backward (SNTP); never lock nav
+                        if (t < lastNavMs || t - lastNavMs >= NAV_COOLDOWN_MS) {
+                            lastNavMs = t;
+                            goTo(payload.direction === "left" ? idx + 1 : idx - 1);
+                        }
                     }
                 } else if (action === "xviewer.next") {
                     goTo(idx + 1);
