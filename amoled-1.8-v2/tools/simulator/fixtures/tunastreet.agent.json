@@ -1,0 +1,52 @@
+{
+    "_comment": "Canned responses for tunastreet.agent under --fixture. Shape matches ~/amoled-agent/backend/server.py's _digest(), captured from the live backend and frozen to a healthy 4s-old heartbeat so a check run is reproducible. No EFM call is made -- fixtures.js answers in-process.",
+    "GET /agent/status": {
+        "status_code": 200,
+        "body": {
+            "server_unix": 1755800000,
+            "agent_id": "microfi-1cdbd47b8584",
+            "device_id": "1cdbd47b8584",
+            "agent_class": "AMOLED",
+            "agent_type": "cpp",
+            "agent_version": "0.1.0",
+            "state": "ONLINE",
+            "last_seen_unix": 1755799996,
+            "heartbeat_age_s": 4,
+            "first_seen_unix": 1787083570,
+            "uptime_s": 6265,
+            "cpu_pct": 0.0,
+            "mem_bytes": 8505660,
+            "flowfile_queued": 0,
+            "controller_running": true,
+            "processors": [
+                {
+                    "name": "GenerateFlowFile",
+                    "running": true
+                },
+                {
+                    "name": "LogAttribute",
+                    "running": true
+                }
+            ],
+            "running_count": 2,
+            "processor_count": 2,
+            "catalogue_count": 6,
+            "catalogue": [
+                "GenerateFlowFile",
+                "ListenHTTP",
+                "LogAttribute",
+                "PublishMQTT",
+                "PublishSparkplug",
+                "UpdateAttribute"
+            ],
+            "flow_published": false
+        }
+    },
+    "GET /health": {
+        "status_code": 200,
+        "body": {
+            "ok": true,
+            "app": "agent"
+        }
+    }
+}

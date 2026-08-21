@@ -29,6 +29,15 @@ function argVal(name, def) {
 }
 const PORT = Number(argVal("--port", process.env.PANEL_SIM_PORT || 8095));
 
+// --proxy 127.0.0.1:8091 forwards any non-simulator path to that app's real
+// backend, so the panel can be watched against live data instead of fixtures.
+const PROXY = (() => {
+    const v = argVal("--proxy", process.env.PANEL_SIM_PROXY || "");
+    if (!v) { return null; }
+    const [host, port] = v.replace(/^https?:\/\//, "").split(":");
+    return { host: host || "127.0.0.1", port: Number(port || 80) };
+})();
+
 const MIME = {
     ".html": "text/html; charset=utf-8",
     ".js": "text/javascript; charset=utf-8",
@@ -102,8 +111,42 @@ const server = http.createServer((req, res) => {
         return;
     }
 
-    send(res, 404, "not found", { "Content-Type": "text/plain" });
+    // Anything else is the app's own backend call. panel.html rewrites the
+    // app's LAN base to this page's origin (cross-origin requests land but
+    // CORS blocks reading the reply -- the #205 "leaderboard unreachable"
+    // trap), so with --proxy the harness forwards them to the real backend
+    // and the panel shows live data. Without --proxy, use ?fixture=1.
+    if (PROXY) {
+        proxyTo(req, res, p + url.search);
+        return;
+    }
+
+    send(res, 404, "not found (no --proxy given; use ?fixture=1 for canned data)",
+         { "Content-Type": "text/plain" });
 });
+
+function proxyTo(req, res, pathWithQuery) {
+    const chunks = [];
+    req.on("data", (d) => chunks.push(d));
+    req.on("end", () => {
+        const body = Buffer.concat(chunks);
+        const headers = Object.assign({}, req.headers, { host: PROXY.host + ":" + PROXY.port });
+        if (body.length) { headers["content-length"] = String(body.length); }
+        const up = http.request({
+            host: PROXY.host, port: PROXY.port, method: req.method,
+            path: pathWithQuery, headers,
+        }, (r) => {
+            res.writeHead(r.statusCode || 502, r.headers);
+            r.pipe(res);
+        });
+        up.on("error", (e) => {
+            send(res, 502, "proxy to " + PROXY.host + ":" + PROXY.port + " failed: " + e.message,
+                 { "Content-Type": "text/plain" });
+        });
+        if (body.length) { up.write(body); }
+        up.end();
+    });
+}
 
 server.listen(PORT, () => {
     console.log("[serve] simulator on http://127.0.0.1:" + PORT + "/  (apps root: " + APPS_ROOT + ")");
