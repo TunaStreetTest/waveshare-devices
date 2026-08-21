@@ -315,7 +315,11 @@
             }
             obs[i].alive = true;
             obs[i].lane = l;
-            obs[i].y = ROAD_TOP - OBS_SZ;
+            // Spawn ON the road's top edge, not above it. The obstacles are
+            // siblings of the HUD, not children of a clipping road container,
+            // so anything spawned above ROAD_TOP paints straight over the
+            // score, lives and clock on its way down.
+            obs[i].y = ROAD_TOP;
             obs[i].type = type;
             bind("/panel_game/g_obs" + i, "obs" + i + "X", LANES[l] - OBS_SZ / 2);
             bind("/panel_game/g_obs" + i, "obs" + i + "Y", Math.round(obs[i].y));
