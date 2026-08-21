@@ -10,6 +10,7 @@
     },
     "commonProps": {
         "scrollable": false,
+        "pressLock": true,
         "clickable": true
     },
     "children": [
@@ -33,6 +34,7 @@
             },
             "commonProps": {
                 "scrollable": false,
+                "pressLock": true,
                 "clickable": false
             },
             "children": [
@@ -56,6 +58,7 @@
                     },
                     "commonProps": {
                         "scrollable": false,
+                        "pressLock": true,
                         "clickable": false
                     },
                     "children": [
@@ -125,6 +128,7 @@
                     },
                     "commonProps": {
                         "scrollable": false,
+                        "pressLock": true,
                         "clickable": false
                     },
                     "children": []
@@ -149,6 +153,7 @@
                     },
                     "commonProps": {
                         "scrollable": false,
+                        "pressLock": true,
                         "clickable": true
                     },
                     "children": [
@@ -220,12 +225,20 @@
                     },
                     "events": [
                         {
-                            "type": "clicked",
+                            "type": "pressed",
                             "effects": [
                                 {
                                     "type": "emitAction",
-                                    "action": "racing.car_a",
-                                    "requireValidPress": true
+                                    "action": "racing.car_a"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "released",
+                            "effects": [
+                                {
+                                    "type": "emitAction",
+                                    "action": "racing.car_a"
                                 }
                             ]
                         }
@@ -251,6 +264,7 @@
                     },
                     "commonProps": {
                         "scrollable": false,
+                        "pressLock": true,
                         "clickable": true
                     },
                     "children": [
@@ -322,12 +336,20 @@
                     },
                     "events": [
                         {
-                            "type": "clicked",
+                            "type": "pressed",
                             "effects": [
                                 {
                                     "type": "emitAction",
-                                    "action": "racing.car_b",
-                                    "requireValidPress": true
+                                    "action": "racing.car_b"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "released",
+                            "effects": [
+                                {
+                                    "type": "emitAction",
+                                    "action": "racing.car_b"
                                 }
                             ]
                         }
@@ -397,6 +419,7 @@
                     },
                     "commonProps": {
                         "scrollable": false,
+                        "pressLock": true,
                         "clickable": true
                     },
                     "children": [
@@ -425,12 +448,20 @@
                     ],
                     "events": [
                         {
-                            "type": "clicked",
+                            "type": "pressed",
                             "effects": [
                                 {
                                     "type": "emitAction",
-                                    "action": "racing.go",
-                                    "requireValidPress": true
+                                    "action": "racing.go"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "released",
+                            "effects": [
+                                {
+                                    "type": "emitAction",
+                                    "action": "racing.go"
                                 }
                             ]
                         }
@@ -461,6 +492,7 @@
             },
             "commonProps": {
                 "scrollable": false,
+                "pressLock": true,
                 "clickable": false
             },
             "children": [
@@ -594,6 +626,7 @@
                     },
                     "commonProps": {
                         "scrollable": false,
+                        "pressLock": true,
                         "clickable": false
                     },
                     "children": []
@@ -617,6 +650,7 @@
                     },
                     "commonProps": {
                         "scrollable": false,
+                        "pressLock": true,
                         "clickable": true
                     },
                     "events": [
@@ -630,7 +664,16 @@
                             ]
                         },
                         {
-                            "type": "clicked",
+                            "type": "pressing",
+                            "effects": [
+                                {
+                                    "type": "emitAction",
+                                    "action": "racing.lane0"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "released",
                             "effects": [
                                 {
                                     "type": "emitAction",
@@ -659,6 +702,7 @@
                     },
                     "commonProps": {
                         "scrollable": false,
+                        "pressLock": true,
                         "clickable": true
                     },
                     "events": [
@@ -672,7 +716,16 @@
                             ]
                         },
                         {
-                            "type": "clicked",
+                            "type": "pressing",
+                            "effects": [
+                                {
+                                    "type": "emitAction",
+                                    "action": "racing.lane1"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "released",
                             "effects": [
                                 {
                                     "type": "emitAction",
@@ -701,6 +754,7 @@
                     },
                     "commonProps": {
                         "scrollable": false,
+                        "pressLock": true,
                         "clickable": true
                     },
                     "events": [
@@ -714,7 +768,16 @@
                             ]
                         },
                         {
-                            "type": "clicked",
+                            "type": "pressing",
+                            "effects": [
+                                {
+                                    "type": "emitAction",
+                                    "action": "racing.lane2"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "released",
                             "effects": [
                                 {
                                     "type": "emitAction",
@@ -744,6 +807,7 @@
                     },
                     "commonProps": {
                         "scrollable": false,
+                        "pressLock": true,
                         "clickable": false
                     },
                     "children": []
@@ -768,6 +832,7 @@
                     },
                     "commonProps": {
                         "scrollable": false,
+                        "pressLock": true,
                         "clickable": false
                     },
                     "children": []
@@ -999,6 +1064,7 @@
             },
             "commonProps": {
                 "scrollable": false,
+                "pressLock": true,
                 "clickable": false
             },
             "children": [
@@ -1044,6 +1110,7 @@
                     },
                     "commonProps": {
                         "scrollable": false,
+                        "pressLock": true,
                         "clickable": false
                     },
                     "children": []
@@ -1222,6 +1289,7 @@
                     },
                     "commonProps": {
                         "scrollable": false,
+                        "pressLock": true,
                         "clickable": true
                     },
                     "children": [
@@ -1250,12 +1318,20 @@
                     ],
                     "events": [
                         {
-                            "type": "clicked",
+                            "type": "pressed",
                             "effects": [
                                 {
                                     "type": "emitAction",
-                                    "action": "racing.again",
-                                    "requireValidPress": true
+                                    "action": "racing.again"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "released",
+                            "effects": [
+                                {
+                                    "type": "emitAction",
+                                    "action": "racing.again"
                                 }
                             ]
                         }

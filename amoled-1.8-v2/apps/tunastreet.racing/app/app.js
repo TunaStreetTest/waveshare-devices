@@ -32,7 +32,7 @@
     var ROAD_TOP = 56;
     var ROAD_BOTTOM = 448;
 
-    var TICK_MS = 60;
+    var TICK_MS = 40;
     var SEC_MS = 1000;
     var MAX_LIVES = 3;
     var BOOST_SEC = 15;
@@ -318,7 +318,7 @@
             obs[i].y = ROAD_TOP - OBS_SZ;
             obs[i].type = type;
             bind("/panel_game/g_obs" + i, "obs" + i + "X", LANES[l] - OBS_SZ / 2);
-            bind("/panel_game/g_obs" + i, "obs" + i + "Y", obs[i].y);
+            bind("/panel_game/g_obs" + i, "obs" + i + "Y", Math.round(obs[i].y));
             setSrc("/panel_game/g_obs" + i, img);
             bind("/panel_game/g_obs" + i, "obs" + i + "H", "false");
             return;
@@ -349,11 +349,11 @@
     function tick() {
         if (phase !== "game") { return; }
         spawnT++;
-        if (spawnT > Math.max(5, 16 - speedLevel)) {
+        if (spawnT > Math.max(8, 24 - speedLevel * 2)) {
             spawnT = 0;
             spawnObs();
         }
-        var step = 6 + speedLevel * 2;
+        var step = 4 + speedLevel * 1.4;
         for (var i = 0; i < OBS; i++) {
             var o = obs[i];
             if (!o.alive) { continue; }
@@ -369,7 +369,7 @@
                 if (phase !== "game") { return; }
                 continue;
             }
-            bind("/panel_game/g_obs" + i, "obs" + i + "Y", o.y);
+            bind("/panel_game/g_obs" + i, "obs" + i + "Y", Math.round(o.y));
         }
         if (toastTicks > 0) {
             toastTicks--;
@@ -507,7 +507,7 @@
         on_action: function (action) {
             try {
                 if (action === "racing.go") {
-                    startGame();
+                    if (phase === "car") { startGame(); }
                 } else if (action === "racing.lane0") {
                     steerTo(0);
                 } else if (action === "racing.lane1") {
@@ -519,10 +519,12 @@
                 } else if (action === "racing.car_b") {
                     selectCar("porsche");
                 } else if (action === "racing.again") {
-                    resetGame();
-                    showPhase("game");
-                    toast("GO, " + username + "!");
-                    sendTelemetry("heartbeat");
+                    if (phase === "over") {
+                        resetGame();
+                        showPhase("game");
+                        toast("GO, " + username + "!");
+                        sendTelemetry("heartbeat");
+                    }
                 }
             } catch (e) {
                 log("on_action error:", String(e));
