@@ -1,10 +1,18 @@
 /*
- * X Viewer - ESP-Brookesia v0.8 JavaScript runtime app (issue #183).
+ * X Viewer - ESP-Brookesia v0.8 JavaScript runtime app (issue #183, #198).
  *
  * One post card at a time on the 368x448 AMOLED, fed by the LAN backend
- * (http://192.168.1.121:8091). Swipe left/right (plus the << / >> tap
- * targets in the bottom bar as a guaranteed-path fallback) to move through
- * posts, tap the heart to like/unlike with optimistic toggle.
+ * (http://192.168.1.121:8091). Swipe left/right (plus tap-to-navigate on the
+ * left/right halves of the media card, a guaranteed-path fallback) to move
+ * through posts, tap the heart to like/unlike with optimistic toggle.
+ *
+ * #198 rebuilt res/screens/home.json on the panelkit design system
+ * (uikit/gen_xviewer_screen.py in DesktopShare's files/xviewer/) -- bigger
+ * text, a real bottom "tools" bar (LIKE/VIEWS/COMMENTS/CLEAR), and prev/next
+ * moved onto the media card itself as two big tap zones instead of a 40x36
+ * corner glyph. This file's node paths were updated to match; every
+ * setText/setBinding/SetViewSrc path below must resolve in that generated
+ * screen (see files/xviewer/verify_xviewer_paths.py).
  *
  * Plain global script (no import/export) so the JS backend evaluates it
  * with JS_EVAL_TYPE_GLOBAL. All host access goes through the global
@@ -21,6 +29,7 @@
     // ---------------------------------------------------------------- config
     var BACKEND = "http://192.168.1.121:8091";
     var FEED_PATH = "/xviewer/feed";
+    var FEED_REFRESH_PATH = "/xviewer/feed?refresh=1"; // CLEAR: bypass the backend cache
     var ACTION_PATH = "/xviewer/action";
     var SCREEN = "/home";
     var FEED_REFRESH_MS = 60000;
@@ -42,6 +51,7 @@
     var likeInFlight = false;
     var lastNavMs = 0;          // gesture debounce clock (Date.now deltas)
     var feedInFlight = false;
+    var forceFirstOnFeed = false; // CLEAR: jump to card 0 instead of keeping place
     var refreshTimerId = null;
     var retryTimerId = null;
     var httpServiceHandle = null;
@@ -115,7 +125,7 @@
     }
 
     function setStatus(msg) {
-        setText("/status", msg || "");
+        setText("/topbar/status", msg || "");
     }
 
     // ---------------------------------------------------------------- HTTP
@@ -179,14 +189,17 @@
     }
 
     // ---------------------------------------------------------------- feed
-    function fetchFeed() {
+    function fetchFeed(refresh) {
         if (feedInFlight) {
             return;
         }
         feedInFlight = true;
-        log("fetching feed");
+        if (refresh) {
+            forceFirstOnFeed = true;
+        }
+        log("fetching feed", refresh ? "(refresh)" : "");
         httpRequest({
-            url: BACKEND + FEED_PATH,
+            url: BACKEND + (refresh ? FEED_REFRESH_PATH : FEED_PATH),
             method: "Get",
             timeout_ms: 8000,
             max_response_size: 262144
@@ -221,8 +234,12 @@
         }
         var currentId = posts[idx] ? posts[idx].id : null;
         posts = list;
-        // keep the user's place across refreshes when the post is still there
-        if (currentId !== null) {
+        if (forceFirstOnFeed) {
+            // CLEAR: always land on the first card, don't try to keep place.
+            forceFirstOnFeed = false;
+            idx = 0;
+        } else if (currentId !== null) {
+            // keep the user's place across refreshes when the post is still there
             for (var i = 0; i < posts.length; i++) {
                 if (posts[i].id === currentId) {
                     idx = i;
@@ -260,17 +277,20 @@
         }
         setText("/post_text", text);
         renderMetrics(p);
-        setText("/bar/pos", (idx + 1) + "/" + posts.length);
+        setText("/topbar/pos", (idx + 1) + "/" + posts.length);
         renderImage(p);
     }
 
     function renderMetrics(p) {
         var m = p.metrics || {};
-        setText("/bar/likebox/likes", kFormat(m.likes));
-        setText("/bar/reposts", kFormat(m.reposts) + " rp");
-        setText("/bar/views", kFormat(m.views) + " vw");
-        setViewSrc("/bar/likebox/heart", p.liked ? "heart_on" : "heart_off");
-        setBinding("/bar/likebox/likes", "likeColor", p.liked ? COLOR_LIKED : COLOR_MUTED);
+        // replies is new on the backend (#198) -- a stale/un-restarted
+        // process won't send it yet, so a missing value reads as 0.
+        var replies = typeof m.replies === "number" ? m.replies : 0;
+        setText("/toolbar/t_like/t_like_c", kFormat(m.likes));
+        setText("/toolbar/t_views/t_views_v", kFormat(m.views));
+        setText("/toolbar/t_comments/t_comments_v", kFormat(replies));
+        setViewSrc("/toolbar/t_like/t_like_img", p.liked ? "heart_on" : "heart_off");
+        setBinding("/toolbar/t_like/t_like_c", "likeColor", p.liked ? COLOR_LIKED : COLOR_MUTED);
     }
 
     function imageUrlFor(p) {
@@ -287,8 +307,29 @@
         return BACKEND + (s.charAt(0) === "/" ? s : "/" + s);
     }
 
+    // Most posts carry no media, and the 368x220 card is the biggest thing on
+    // the panel - left black it throws away half the glass. A text post gets a
+    // Tuna Street tile instead, picked from the three accents by post id so
+    // consecutive text posts don't look identical. The card is never empty.
+    var TILES = ["tile_a", "tile_b", "tile_c"];
+
+    function tileFor(p) {
+        var id = String((p && p.id) || "");
+        var sum = 0;
+        for (var i = 0; i < id.length; i++) {
+            sum += id.charCodeAt(i);
+        }
+        return TILES[sum % TILES.length];
+    }
+
+    function showTile(p) {
+        setViewSrc("/media/card_img", tileFor(p));
+        setBinding("/media/card_img", "imgHidden", "false");
+        shownSlot = -1;
+    }
+
     function hideImage() {
-        setBinding("/card_img", "imgHidden", "true");
+        setBinding("/media/card_img", "imgHidden", "true");
     }
 
     function showImageFromSlot(slot) {
@@ -296,12 +337,12 @@
         // host bridge before the service sees it); the LVGL backend preloads
         // the JPEG bytes from that path.
         var result = guiCall("SetViewSrc", {
-            Path: SCREEN + "/card_img",
+            Path: SCREEN + "/media/card_img",
             Src: cacheMarker("img_" + slot + ".jpg")
         });
         if (result.success) {
             shownSlot = slot;
-            setBinding("/card_img", "imgHidden", "false");
+            setBinding("/media/card_img", "imgHidden", "false");
         } else {
             hideImage();
         }
@@ -326,7 +367,7 @@
     function renderImage(p) {
         var url = imageUrlFor(p);
         if (!url) {
-            hideImage();
+            showTile(p);
             return;
         }
         var cachedSlot = -1;
@@ -340,7 +381,7 @@
             showImageFromSlot(cachedSlot);
             return;
         }
-        hideImage(); // don't show the previous post's picture while downloading
+        showTile(p); // tile stands in while the picture downloads
         var slot = pickSlot(p.id);
         var seqAtRequest = navSeq;
         slotOwner[slot] = null; // file about to be overwritten
@@ -360,7 +401,7 @@
             }
             if (!response || (response.error && response.error !== "Ok") || response.status_code !== 200) {
                 log("image fetch failed for", p.id, response ? (response.error_message || response.error) : "no response");
-                hideImage();
+                showTile(p);   // the tile stays rather than dropping to a black card
                 return;
             }
             slotOwner[slot] = p.id;
@@ -375,6 +416,20 @@
         }
         idx = (newIdx + posts.length) % posts.length;
         render();
+    }
+
+    /**
+     * CLEAR tool: the backend has no server-side "clear" concept, only a
+     * cache-bypassing refetch (?refresh=1) -- so CLEAR means "drop the
+     * cached feed and reload from the top," landing on card 0 regardless of
+     * where the user was (forceFirstOnFeed, consumed in onFeedResponse).
+     * feedInFlight is the existing debounce: a tap while a fetch is already
+     * running is a no-op, same as the periodic/retry timers.
+     */
+    function doClear() {
+        log("clear tapped");
+        setStatus("clearing...");
+        fetchFeed(true);
     }
 
     function toggleLike() {
@@ -447,7 +502,7 @@
                 }
 
                 // GUI actions (declared in res/screens/home.json).
-                var actions = ["xviewer.gesture", "xviewer.like", "xviewer.prev", "xviewer.next"];
+                var actions = ["xviewer.gesture", "xviewer.like", "xviewer.prev", "xviewer.next", "xviewer.clear"];
                 for (var j = 0; j < actions.length; j++) {
                     var subResult = svcCall("SystemGui", "SubscribeAction", { Action: actions[j] });
                     if (!subResult.success) {
@@ -499,6 +554,8 @@
                     goTo(idx - 1);
                 } else if (action === "xviewer.like") {
                     toggleLike();
+                } else if (action === "xviewer.clear") {
+                    doClear();
                 }
             } catch (e) {
                 log("on_action error:", String(e));

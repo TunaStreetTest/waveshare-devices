@@ -18,6 +18,24 @@
             "src": "heart_off.png",
             "width": 28,
             "height": 28
+        },
+        {
+            "id": "tile_a",
+            "src": "tile_a.png",
+            "width": 368,
+            "height": 220
+        },
+        {
+            "id": "tile_b",
+            "src": "tile_b.png",
+            "width": 368,
+            "height": 220
+        },
+        {
+            "id": "tile_c",
+            "src": "tile_c.png",
+            "width": 368,
+            "height": 220
         }
     ]
 }
