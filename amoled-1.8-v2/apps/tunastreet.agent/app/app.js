@@ -117,6 +117,20 @@
         return Math.floor(s / 86400) + "d " + pad2(Math.floor((s % 86400) / 3600)) + "h";
     }
 
+    // The metrics row gives each value a 92px cell at 28px type, which "1h 44m"
+    // overflows into a clipped second line (caught in the simulator before this
+    // ever reached the glass). Same information, no spaces, four chars max.
+    function tightDur(s) {
+        if (s < 0) { return "--"; }
+        if (s < 60) { return s + "s"; }
+        if (s < 3600) { return Math.floor(s / 60) + "m"; }
+        if (s < 86400) {
+            var h = Math.floor(s / 3600);
+            return h + "h" + pad2(Math.floor((s % 3600) / 60));
+        }
+        return Math.floor(s / 86400) + "d" + pad2(Math.floor((s % 86400) / 3600));
+    }
+
     function mib(bytes) {
         if (!bytes) { return "0"; }
         return (bytes / 1048576).toFixed(1);
@@ -207,7 +221,7 @@
         setText("/proc/proc_list", names.length ? names.join("  ") : "no flow published");
         setText("/proc/proc_cat", snap.catalogue_count + " types in class " + snap.agent_class);
 
-        setText("/mx/mx_uptime_v", shortDur(snap.uptime_s));
+        setText("/mx/mx_uptime_v", tightDur(snap.uptime_s));
         setText("/mx/mx_mem_v", mib(snap.mem_bytes));
         setText("/mx/mx_cpu_v", String(snap.cpu_pct));
         setText("/mx/mx_queue_v", String(snap.flowfile_queued));
