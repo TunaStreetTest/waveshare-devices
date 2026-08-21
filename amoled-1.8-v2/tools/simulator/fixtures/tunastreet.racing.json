@@ -1,0 +1,23 @@
+{
+    "_comment": "Canned responses for tunastreet.racing under --fixture. Shapes match backend/server.py's _digest() and /racing/metrics ack (amoled-racing repo, #205). Never posted anywhere real -- this is consumed in-process by fixtures.js, no network involved.",
+    "GET /racing/leaderboard": {
+        "status_code": 200,
+        "body": {
+            "server_unix": 1755800000,
+            "source": "fixture",
+            "playing_now": 1,
+            "total_games": 12,
+            "live": { "name": "LiveLarry", "score": 42 },
+            "count": 3,
+            "rows": [
+                { "pos": 1, "name": "Tuna", "car": "Porsche 911", "score": 80 },
+                { "pos": 2, "name": "FixtureFred", "car": "Toyota Corolla S", "score": 64 },
+                { "pos": 3, "name": "TestaRossa", "car": "Porsche 911", "score": 51 }
+            ]
+        }
+    },
+    "POST /racing/metrics": {
+        "status_code": 200,
+        "body": { "ok": true, "status": 200 }
+    }
+}

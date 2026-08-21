@@ -1,5 +1,14 @@
 # tools — Windows-side flash + serial for the AMOLED 1.8 V2 (COM8)
 
+## Before any flash: run it in the simulator first
+
+`simulator/` (#212) runs a runtime app's real `app/app.js` + screen off-device
+at true 368x448 -- headless (scoreable) or in a browser (watchable) -- and
+`simulator/lint.js --check <app-id>` is the pre-flash structural/reachability
+check (thresholds from `uikit/tokens.json`). See `simulator/README.md`.
+Building the harness and driving it yourself catches a UI bug in seconds
+that would otherwise cost a flash cycle to notice.
+
 The board's USB-Serial/JTAG console only yields bytes to a host that already
 holds the port open across a reset — so **capture is always chained to a
 reset**. Toggling RTS alone from a fresh open reads 0 bytes and does NOT

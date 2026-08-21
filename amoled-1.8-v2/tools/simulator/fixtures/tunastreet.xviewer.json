@@ -1,0 +1,50 @@
+{
+    "_comment": "Canned responses for tunastreet.xviewer under --fixture. Shapes match the live backend contract in apps/tunastreet.xviewer/README.md (verified 2026-08-19). Never posted anywhere real -- this is consumed in-process by fixtures.js, no network involved.",
+    "GET /xviewer/feed": {
+        "status_code": 200,
+        "body": {
+            "account": "tunastreet",
+            "cached": true,
+            "count": 3,
+            "panel": "amoled-1.8-v2",
+            "posts": [
+                {
+                    "id": "fx-1",
+                    "author": "tunastreet",
+                    "text": "Fixture post one -- simulator smoke test for the X Viewer card layout, gestures, and like toggle.",
+                    "ts": "2026-08-21T18:00:00Z",
+                    "media_type": "photo",
+                    "img": "/xviewer/img/fx-1.jpg",
+                    "liked": false,
+                    "metrics": { "likes": 42, "reposts": 7, "views": 1234 }
+                },
+                {
+                    "id": "fx-2",
+                    "author": "tunastreet",
+                    "text": "Fixture post two -- no image, text-only card.",
+                    "ts": "2026-08-21T18:05:00Z",
+                    "media_type": "none",
+                    "img": null,
+                    "liked": true,
+                    "metrics": { "likes": 1500, "reposts": 300, "views": 98000 }
+                },
+                {
+                    "id": "fx-3",
+                    "author": "tunastreet",
+                    "text": "Fixture post three.",
+                    "ts": "2026-08-21T18:10:00Z",
+                    "media_type": "photo",
+                    "img": true,
+                    "liked": false,
+                    "metrics": { "likes": 3, "reposts": 0, "views": 40 }
+                }
+            ]
+        }
+    },
+    "GET /xviewer/img/fx-1.jpg": { "status_code": 200, "body": "" },
+    "GET /xviewer/img/fx-3.jpg": { "status_code": 200, "body": "" },
+    "POST /xviewer/action": {
+        "status_code": 200,
+        "body": { "liked": true }
+    }
+}

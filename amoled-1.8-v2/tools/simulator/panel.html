@@ -1,0 +1,389 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Brookesia panel simulator</title>
+<style>
+  /* Panel-only page: the 368x448 glass, centred, on its own dark ground.
+     Nothing shares its horizontal band -- any control or log this page
+     needs goes below the panel's own bottom edge, never beside it.
+     App/driver/fixture selection is query-params + keyboard, not on-page
+     chrome (see README.md's flag list). */
+  html, body { height:100%; }
+  body { background:#0b0b0d; color:#ddd; font-family:'Segoe UI',sans-serif; margin:0;
+         display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; }
+  #panel { position:relative; width:368px; height:448px; background:#000; overflow:hidden;
+           border-radius:22px; box-shadow:0 0 0 10px #111, 0 12px 40px #000; flex:none; }
+  #panel * { box-sizing:border-box; }
+  .node { display:flex; overflow:hidden; }
+  .node img { max-width:100%; max-height:100%; object-fit:contain; }
+  #bar { width:368px; display:flex; gap:8px; justify-content:center; align-items:center; font-size:11px; }
+  #bar button { padding:5px 11px; font-size:11px; border-radius:7px; border:1px solid #555;
+                background:#F96702; color:#111; font-weight:700; cursor:pointer; }
+  #bar button:disabled { background:#333; color:#777; cursor:default; }
+  #log { width:368px; max-height:90px; overflow:auto; background:#111; border:1px solid #333;
+         border-radius:8px; padding:6px 8px; font-family:ui-monospace,Menlo,monospace; font-size:10px;
+         white-space:pre-wrap; color:#888; }
+  #err { position:fixed; top:0; left:0; right:0; background:#7f1d1d; color:#fff; padding:10px 16px;
+         font-family:ui-monospace,Menlo,monospace; font-size:13px; white-space:pre-wrap; display:none; }
+</style>
+</head>
+<body>
+<div id="err"></div>
+<div id="panel"></div>
+<div id="bar">
+  <button id="auto" disabled>CLAUDE DRIVES — start</button>
+  <span id="autostate" style="color:#888"></span>
+  <span id="apptag" style="color:#555"></span>
+</div>
+<div id="log"></div>
+
+<script src="/sim/shim.js"></script>
+<script>
+const params = new URLSearchParams(location.search);
+const APP = params.get("app");
+const DRIVE = params.get("drive");
+const USE_FIXTURE = params.get("fixture") === "1";
+const AUTO_CLAUDE = params.get("claude") === "1";
+
+const logEl = document.getElementById("log");
+function log(s) { logEl.textContent += s + "\n"; logEl.scrollTop = logEl.scrollHeight; }
+function fatal(msg) {
+  const e = document.getElementById("err");
+  e.style.display = "block";
+  e.textContent = "[sim] " + msg;
+  console.error(msg);
+}
+
+if (!APP) {
+  fatal("no ?app=<id> given -- e.g. /?app=tunastreet.xviewer or /?app=tunastreet.racing&drive=examples/racing-bot.js");
+  throw new Error("no ?app given");
+}
+document.title = APP + " — panel simulator";
+document.getElementById("apptag").textContent = APP + (USE_FIXTURE ? " (fixture)" : "");
+
+const PKG = "/pkg/" + APP;
+// sprites are regenerated often; bust the cache per page load
+const V = "?v=" + Date.now();
+
+// ---- package resolution: manifest -> profile -> flow -> screen -----------
+// Same four-step walk as tools/simulator/pkg.js, over fetch() instead of fs
+// since the browser has no filesystem. Never hardcode "home" here.
+async function resolvePkg(appId) {
+  const manifest = await (await fetch(`${PKG}/manifest.json`)).json();
+  const entryRel = manifest.runtime && manifest.runtime.entry;
+  if (!entryRel) { throw new Error(appId + ": manifest.json has no runtime.entry"); }
+  const profile = await (await fetch(`${PKG}/res/profile.json`)).json();
+  const flowName = profile.screen_flows && profile.screen_flows[0] && profile.screen_flows[0].screen_flow;
+  if (!flowName) { throw new Error(appId + ": res/profile.json has no screen_flows[0].screen_flow"); }
+  const flow = await (await fetch(`${PKG}/res/flows/${flowName}.json`)).json();
+  const screenId = flow.initial;
+  if (!screenId) { throw new Error(appId + ": " + flowName + ".json has no \"initial\""); }
+  const screen = await (await fetch(`${PKG}/res/screens/${screenId}.json`)).json();
+  const appJs = await (await fetch(`${PKG}/${entryRel}`)).text();
+  return { manifest, entryRel, profile, flowName, flow, screenId, screen, appJs };
+}
+
+// ---- optional in-browser fixture (mirrors fixtures.js's lookup) ----------
+async function loadFixtureMap(appId) {
+  const r = await fetch(`/sim/fixtures/${appId}.json`);
+  if (!r.ok) { return null; }
+  return r.json();
+}
+function fixtureFetch(map) {
+  return async function (request) {
+    let pathname = request.url;
+    try { pathname = new URL(request.url).pathname; } catch (e) { /* leave as-is */ }
+    const method = (request.method || "Get").toUpperCase();
+    const hit = (map && (map[method + " " + pathname] || map[pathname])) || null;
+    if (!hit) {
+      log("[fixture] WARN no fixture for " + method + " " + pathname + " - synthesizing 200 {}");
+      return { status_code: 200, body: "{}", error: "Ok" };
+    }
+    const body = (typeof hit.body === "string") ? hit.body : JSON.stringify(hit.body);
+    return { status_code: hit.status_code || 200, body, error: hit.error || "Ok" };
+  };
+}
+function liveFetch(request) {
+  // Same-origin rewrite: the app targets its LAN base URL; in the browser
+  // that's cross-origin and the reply's CORS gets blocked even though the
+  // request lands. Route it through this page's own origin instead.
+  return (async () => {
+    const url = request.url.replace(/^https?:\/\/[^/]+/, location.origin);
+    const r = await fetch(url, {
+      method: (request.method || "Get").toUpperCase(),
+      headers: request.headers || {},
+      body: request.body,
+    });
+    return { status_code: r.status, body: await r.text(), error: "Ok" };
+  })();
+}
+
+// ---- DOM renderer: draws the JSON-UI tree at true 368x448 -----------------
+// mode:"absolute" nodes get position:absolute + left/top from placement
+// (parent-relative, since every node -- flow or absolute -- is at least
+// position:relative, so nesting alone resolves the offset). mode:"flow"
+// nodes under a layout.type:"flex" parent get real CSS flex participation
+// and are NOT forced into absolute coordinates -- that's the fix for the
+// #212 gap where flow/flex was never simulated and everything piled up at
+// (0,0). Children MUST nest inside their parent's element, not sit flat:
+// a hidden container's children must vanish with it (LVGL does this, and a
+// flat DOM lets RACE OVER paint over a live race -- see #205).
+const MAIN_ALIGN = { start: "flex-start", end: "flex-end", center: "center", spaceBetween: "space-between", spaceAround: "space-around" };
+const CROSS_ALIGN = { start: "flex-start", end: "flex-end", center: "center" };
+
+function DomRenderer(host) { this.host = host; this.els = {}; }
+DomRenderer.prototype.visible = function (path) {
+  let n = this.doc.byPath[path];
+  while (n) { if (n._hidden) { return false; } n = n._parent; }
+  return true;
+};
+// Generic dump of every visible label's text -- mirrors StateRenderer's, so
+// drive.js's fallback status line works whichever renderer is in play.
+DomRenderer.prototype.dumpLabels = function () {
+  const out = {};
+  for (const path in this.doc.byPath) {
+    const n = this.doc.byPath[path];
+    if (n.type === "label" && this.visible(path)) { out[path] = n._text; }
+  }
+  return out;
+};
+DomRenderer.prototype.attach = function (doc) {
+  this.doc = doc;
+  const build = (node, parentEl) => {
+    const el = document.createElement("div");
+    el.className = "node";
+    el.dataset.path = node._path;
+    this.els[node._path] = el;
+    parentEl.appendChild(el);
+    (node.children || []).forEach((c) => build(c, el));
+  };
+  build(doc.root, this.host);
+};
+DomRenderer.prototype.render = function () {
+  for (const path in this.doc.byPath) {
+    const n = this.doc.byPath[path], el = this.els[path];
+    if (!el) { continue; }
+    const isRoot = (path === "/" + this.doc.root.id);
+    const layoutType = n.layout && n.layout.type;
+    const mode = n.placement && n.placement.mode;
+
+    el.style.position = "relative"; // positioning context for any absolute descendant
+    if (isRoot) {
+      el.style.position = "absolute";
+      el.style.left = "0px"; el.style.top = "0px";
+      el.style.width = "368px"; el.style.height = "448px";
+    } else if (mode === "absolute") {
+      el.style.position = "absolute";
+      el.style.left = n._x + "px"; el.style.top = n._y + "px";
+      el.style.width = ((n.placement && n.placement.width) || 0) + "px";
+      el.style.height = ((n.placement && n.placement.height) || 0) + "px";
+      el.style.flexGrow = "";
+    } else {
+      el.style.left = ""; el.style.top = "";
+      el.style.width = (n.placement && typeof n.placement.width === "number") ? n.placement.width + "px" : "";
+      el.style.height = (n.placement && typeof n.placement.height === "number") ? n.placement.height + "px" : "";
+      el.style.flexGrow = (n.placement && n.placement.flexGrow) || "";
+    }
+
+    if (layoutType === "flex" || layoutType === "grid") {
+      el.style.display = n._hidden ? "none" : "flex";
+      el.style.flexDirection = ((n.layout && n.layout.flexFlow) === "column") ? "column" : "row";
+      el.style.justifyContent = MAIN_ALIGN[n.layout && n.layout.mainAlign] || "flex-start";
+      el.style.alignItems = CROSS_ALIGN[n.layout && n.layout.crossAlign] || "flex-start";
+      el.style.gap = ((n.layout && n.layout.gap) || 0) + "px";
+    } else {
+      el.style.display = n._hidden ? "none" : (n.type === "label" || n.type === "image" ? "flex" : "block");
+      el.style.flexDirection = ""; el.style.gap = "";
+      if (n.type !== "label") { el.style.justifyContent = ""; el.style.alignItems = ""; }
+    }
+
+    el.style.background = n._bg || "transparent";
+    el.style.borderRadius = ((n.style && n.style.radius) || 0) + "px";
+    el.style.padding = ((n.style && n.style.padding) || 0) + "px";
+
+    if (n.type === "label") {
+      el.textContent = n._text || "";
+      el.style.color = n._color || (n.style && n.style.textColor) || "#fff";
+      el.style.fontSize = (n._size || (n.style && n.style.fontSize) || 14) + "px";
+      if (layoutType !== "flex") {
+        const a = (n.style && n.style.textAlign) || "center";
+        el.style.justifyContent = a === "left" ? "flex-start" : a === "right" ? "flex-end" : "center";
+        el.style.alignItems = "center";
+      }
+      el.style.fontWeight = ((n._size || (n.style && n.style.fontSize) || 14) >= 20) ? "700" : "500";
+    } else if (n.type === "image") {
+      // _src is a "${image.<id>}" ref for the static imageSet (renders below)
+      // or, after SetViewSrc with a $brookesiaStoragePath cache marker (e.g.
+      // xviewer's downloaded post JPEGs), an object -- this shim has no
+      // storage/cache filesystem, so those don't render here. Deliberate gap,
+      // documented in README.md; SetViewSrc still reports success either way,
+      // matching the real "accepted, not necessarily rendered" contract.
+      const raw = n._src;
+      const id = (typeof raw === "string" && raw.indexOf("${image.") === 0)
+        ? raw.replace("${image.", "").replace("}", "")
+        : null;
+      if (el.dataset.img !== (id || "")) {
+        el.dataset.img = id || "";
+        el.innerHTML = id ? `<img src="${PKG}/res/images/${id}.png${V}">` : "";
+      }
+    }
+  }
+};
+
+// ---- wire it up ------------------------------------------------------------
+(async function () {
+  let pkg;
+  try {
+    pkg = await resolvePkg(APP);
+  } catch (e) {
+    fatal("failed to resolve " + APP + ": " + e.message);
+    return;
+  }
+
+  const fixtureMap = USE_FIXTURE ? await loadFixtureMap(APP) : null;
+  if (USE_FIXTURE && !fixtureMap) { log("[sim] WARN: no /sim/fixtures/" + APP + ".json - every request synthesizes 200 {}"); }
+
+  const renderer = new DomRenderer(document.getElementById("panel"));
+  const shim = new PanelKit.Shim({
+    screen: pkg.screen, renderer, log,
+    httpFetch: USE_FIXTURE ? fixtureFetch(fixtureMap || {}) : liveFetch,
+  });
+  shim.install();
+
+  try {
+    (0, eval)(pkg.appJs);
+    shim.start();
+  } catch (e) {
+    fatal("app.js threw during boot: " + (e.stack || e));
+    return;
+  }
+  log("[sim] " + APP + " started (screen: " + pkg.screenId + ")");
+
+  // drive the emulated clock in real time
+  let last = performance.now();
+  function frame(now) {
+    if (window._autoTick) { window._autoTick(); }
+    shim.advance(Math.min(200, now - last));
+    last = now;
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  // ---- gesture + tap synthesis --------------------------------------------
+  // Topmost = the last match found walking byPath in (depth-first, parent-
+  // before-children) insertion order: a later match is nested deeper, i.e.
+  // painted on top.
+  function topNodeAt(clientX, clientY) {
+    let hit = null;
+    for (const p in shim.doc.byPath) {
+      const n = shim.doc.byPath[p];
+      if (!n.events || n._hidden) { continue; }
+      const el = renderer.els[p];
+      if (!el || el.style.display === "none") { continue; }
+      const b = el.getBoundingClientRect();
+      if (clientX >= b.left && clientX <= b.right && clientY >= b.top && clientY <= b.bottom) { hit = n; }
+    }
+    return hit;
+  }
+  function gestureAncestor(node) {
+    let n = node;
+    while (n) {
+      if (n.events && n.events.some((ev) => ev.type === "gesture")) { return n; }
+      n = n._parent;
+    }
+    return null;
+  }
+  function fireEffects(node, type) {
+    const ev = node.events && node.events.find((e) => e.type === type);
+    (ev && ev.effects || []).forEach((eff) => shim.emit(eff.action));
+  }
+
+  const TAP_DIST = 12, SWIPE_DIST = 24;
+  let pd = null;
+  const panelEl = document.getElementById("panel");
+  panelEl.addEventListener("pointerdown", (e) => {
+    const node = topNodeAt(e.clientX, e.clientY);
+    pd = { x: e.clientX, y: e.clientY, t: performance.now(), node };
+    if (node) { fireEffects(node, "pressed"); }
+  });
+  panelEl.addEventListener("pointerup", (e) => {
+    if (!pd) { return; }
+    const dx = e.clientX - pd.x, dy = e.clientY - pd.y;
+    const dist = Math.hypot(dx, dy);
+    const dt = Math.round(performance.now() - pd.t);
+    if (dist < TAP_DIST) {
+      const node = pd.node || topNodeAt(e.clientX, e.clientY);
+      if (node) { fireEffects(node, "clicked"); fireEffects(node, "released"); }
+    } else if (dist >= SWIPE_DIST) {
+      const anchor = gestureAncestor(pd.node) || gestureAncestor(topNodeAt(e.clientX, e.clientY));
+      if (anchor) {
+        const horiz = Math.abs(dx) >= Math.abs(dy);
+        const direction = horiz ? (dx < 0 ? "left" : "right") : (dy < 0 ? "up" : "down");
+        const payload = { direction, distance: Math.round(dist), ms: dt };
+        const gestureEv = anchor.events.find((e2) => e2.type === "gesture");
+        log("[gesture] swipe " + JSON.stringify(payload) + " -> " + gestureEv.action +
+            " (sanity-check against the app's own nav-cooldown, e.g. xviewer's 350ms)");
+        shim.emit(gestureEv.action, payload);
+      }
+    }
+    pd = null;
+  });
+
+  // ---- keyboard: driver-provided keymap/onKey, no per-app knowledge here --
+  // Loaded as a classic <script> (not an ES module import): every driver's
+  // UMD wrapper assigns window.PanelDriver as a side effect, matching how
+  // shim.js itself and the old bot.js were loaded in the #205 simulator.
+  let driverMod = null, driver = null;
+  if (DRIVE) {
+    try {
+      await new Promise((resolve, reject) => {
+        const s = document.createElement("script");
+        s.src = "/sim/" + DRIVE;
+        s.onload = resolve;
+        s.onerror = () => reject(new Error("failed to fetch " + s.src));
+        document.head.appendChild(s);
+      });
+      driverMod = window.PanelDriver;
+      if (!driverMod || !driverMod.create) { throw new Error(DRIVE + " did not set window.PanelDriver = {create, ...}"); }
+      driver = driverMod.create(shim, {});
+    } catch (e) {
+      log("[sim] WARN: failed to load driver " + DRIVE + ": " + (e.message || e));
+    }
+  }
+  document.addEventListener("keydown", (e) => {
+    if (driverMod && driverMod.onKey && driverMod.onKey(shim, e.key)) { e.preventDefault(); return; }
+    const action = driverMod && driverMod.keymap && driverMod.keymap[e.key];
+    if (action) { shim.emit(action); e.preventDefault(); }
+    if (e.key === "c" || e.key === "C") { setAuto(!auto); }
+  });
+
+  // ---- autopilot: driver.step() running where you can watch it ------------
+  let auto = false;
+  const autoBtn = document.getElementById("auto");
+  const autoState = document.getElementById("autostate");
+  function setAuto(on) {
+    if (!driver) { return; }
+    auto = on;
+    autoBtn.textContent = on ? "CLAUDE DRIVING — stop" : "CLAUDE DRIVES — start";
+    autoBtn.style.background = on ? "#22c55e" : "#F96702";
+    autoState.textContent = on ? "autopilot engaged" : "";
+    if (on && driver.boot) { driver.boot(); }
+  }
+  if (driver) { autoBtn.disabled = false; }
+  autoBtn.addEventListener("click", () => setAuto(!auto));
+
+  let overSeen = 0;
+  window._autoTick = () => {
+    if (!auto || !driver) { return; }
+    const active = driver.isActive ? driver.isActive() : true;
+    if (active) { if (driver.step) { driver.step(); } overSeen = 0; }
+    else if (driver.restart && ++overSeen > 90) { driver.restart(); overSeen = 0; }
+  };
+
+  if (AUTO_CLAUDE && driver) { setAuto(true); }
+  window.sim = shim; window.driver = driver; // console access
+})();
+</script>
+</body>
+</html>
