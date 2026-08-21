@@ -24,11 +24,11 @@
 
     var LANES = [61, 184, 307];
     var LANE_NAMES = ["Left", "Center", "Right"];
-    var CAR_W = 52;
+    var CAR_W = 56;
     var OBS = 6;
-    var OBS_SZ = 38;
-    var CAR_Y = 320;
-    var ROAD_TOP = 52;
+    var OBS_SZ = 44;
+    var CAR_Y = 300;
+    var ROAD_TOP = 56;
     var ROAD_BOTTOM = 448;
 
     var TICK_MS = 60;
@@ -63,7 +63,7 @@
     ];
 
     // state
-    var phase = "start";
+    var phase = "name";
     var username = "";
     var userId = "";
     var carType = "porsche";
@@ -142,10 +142,11 @@
 
     function showPhase(p) {
         phase = p;
-        bind("/panel_start", "startHidden", p === "start" ? "false" : "true");
+        bind("/panel_name", "nameHidden", p === "name" ? "false" : "true");
+        bind("/panel_car", "carHidden", p === "car" ? "false" : "true");
         bind("/panel_game", "gameHidden", p === "game" ? "false" : "true");
         bind("/panel_over", "overHidden", p === "over" ? "false" : "true");
-        bind("/panel_start/s_kb", "kbHidden", p === "start" ? "false" : "true");
+        bind("/panel_name/n_kb", "kbHidden", p === "name" ? "false" : "true");
         flushBinds();
     }
 
@@ -406,11 +407,27 @@
         renderHud();
     }
 
+    function readName() {
+        var got = svcCall("SystemGui", "GetBinding", {
+            Path: SCREEN + "/panel_name/n_name", Key: "textInputProps.text"
+        });
+        var typed = "";
+        if (got && got.success && got.data !== undefined && got.data !== null) {
+            typed = String((got.data && got.data.Value !== undefined) ? got.data.Value : got.data);
+        }
+        return typed.replace(/^\s+|\s+$/g, "");
+    }
+
+    function toCarPage() {
+        username = readName() || "Driver";
+        if (!userId) { userId = uuid(); }
+        setText("/panel_car/c_greet", "READY, " + username.toUpperCase());
+        showPhase("car");
+        log("name entered:", username);
+    }
+
     function startGame() {
-        var got = svcCall("SystemGui", "GetBinding", { Path: SCREEN + "/panel_start/s_name", Key: "textInputProps.text" });
-        var typed = (got && got.success && got.data) ? String(got.data.Value || got.data) : "";
-        typed = typed.replace(/^\s+|\s+$/g, "");
-        username = typed || "Driver";
+        if (!username) { username = readName() || "Driver"; }
         if (!userId) { userId = uuid(); }
         resetGame();
         showPhase("game");
@@ -453,8 +470,8 @@
 
     function selectCar(which) {
         carType = which;
-        bind("/panel_start/s_car_a", "carAColor", which === "corolla" ? ORANGE : "#333333");
-        bind("/panel_start/s_car_b", "carBColor", which === "porsche" ? ORANGE : "#333333");
+        bind("/panel_car/c_a", "carABg", which === "corolla" ? "#3a2408" : "#1a1a1a");
+        bind("/panel_car/c_b", "carBBg", which === "porsche" ? "#3a2408" : "#1a1a1a");
         flushBinds();
     }
 
@@ -480,7 +497,7 @@
                     }
                 }
 
-                var actions = ["racing.go", "racing.left", "racing.right",
+                var actions = ["racing.to_car", "racing.go", "racing.left", "racing.right",
                                "racing.car_a", "racing.car_b", "racing.again"];
                 for (var j = 0; j < actions.length; j++) {
                     var sub = svcCall("SystemGui", "SubscribeAction", { Action: actions[j] });
@@ -495,8 +512,7 @@
                 if (t2.success) { secTimerId = t2.data; } else { log("second timer failed:", t2.error); }
 
                 selectCar("porsche");
-                showPhase("start");
-                setText("/panel_start/s_status", "");
+                showPhase("name");
             } catch (e) {
                 log("on_start error:", String(e));
             }
@@ -505,7 +521,9 @@
 
         on_action: function (action) {
             try {
-                if (action === "racing.go") {
+                if (action === "racing.to_car") {
+                    toCarPage();
+                } else if (action === "racing.go") {
                     startGame();
                 } else if (action === "racing.left") {
                     steer(-1);

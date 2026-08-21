@@ -5,6 +5,9 @@
         "bgColor": "#000000",
         "padding": 0
     },
+    "layout": {
+        "type": "none"
+    },
     "commonProps": {
         "scrollable": false,
         "clickable": true
@@ -12,13 +15,16 @@
     "children": [
         {
             "type": "container",
-            "id": "panel_start",
+            "id": "panel_name",
             "placement": {
                 "mode": "absolute",
                 "x": 0,
                 "y": 0,
                 "width": 368,
                 "height": 448
+            },
+            "layout": {
+                "type": "none"
             },
             "style": {
                 "bgColor": "#000000",
@@ -29,28 +35,24 @@
                 "scrollable": false,
                 "clickable": false
             },
-            "layout": {
-                "type": "flex",
-                "flexFlow": "row",
-                "mainAlign": "center",
-                "crossAlign": "center",
-                "gap": 0
-            },
             "children": [
                 {
                     "type": "label",
-                    "id": "s_brand_l",
+                    "id": "n_brand",
                     "placement": {
                         "mode": "absolute",
                         "x": 0,
-                        "y": 26,
-                        "width": 200,
+                        "y": 14,
+                        "width": 368,
                         "height": 34
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
                         "textColor": "#f0f0f0",
-                        "fontSize": 24,
-                        "textAlign": "right"
+                        "fontSize": 28,
+                        "textAlign": "center"
                     },
                     "labelProps": {
                         "text": "CLOUDERA"
@@ -58,32 +60,38 @@
                 },
                 {
                     "type": "label",
-                    "id": "s_brand_r",
+                    "id": "n_brand2",
                     "placement": {
                         "mode": "absolute",
-                        "x": 204,
-                        "y": 26,
-                        "width": 120,
-                        "height": 34
+                        "x": 0,
+                        "y": 48,
+                        "width": 368,
+                        "height": 40
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
                         "textColor": "#F96702",
-                        "fontSize": 24,
-                        "textAlign": "left"
+                        "fontSize": 34,
+                        "textAlign": "center"
                     },
                     "labelProps": {
-                        "text": " RACING"
+                        "text": "RACING"
                     }
                 },
                 {
                     "type": "container",
-                    "id": "s_rule",
+                    "id": "n_rule",
                     "placement": {
                         "mode": "absolute",
-                        "x": 40,
-                        "y": 64,
-                        "width": 288,
-                        "height": 3
+                        "x": 34,
+                        "y": 92,
+                        "width": 300,
+                        "height": 4
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
                         "bgColor": "#F96702",
@@ -94,28 +102,24 @@
                         "scrollable": false,
                         "clickable": false
                     },
-                    "layout": {
-                        "type": "flex",
-                        "flexFlow": "row",
-                        "mainAlign": "center",
-                        "crossAlign": "center",
-                        "gap": 0
-                    },
                     "children": []
                 },
                 {
                     "type": "label",
-                    "id": "s_prompt",
+                    "id": "n_prompt",
                     "placement": {
                         "mode": "absolute",
                         "x": 0,
-                        "y": 80,
+                        "y": 108,
                         "width": 368,
-                        "height": 20
+                        "height": 26
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
                         "textColor": "#888888",
-                        "fontSize": 14,
+                        "fontSize": 20,
                         "textAlign": "center"
                     },
                     "labelProps": {
@@ -124,20 +128,23 @@
                 },
                 {
                     "type": "textInput",
-                    "id": "s_name",
+                    "id": "n_name",
                     "placement": {
                         "mode": "absolute",
-                        "x": 44,
-                        "y": 104,
-                        "width": 280,
-                        "height": 44
+                        "x": 24,
+                        "y": 140,
+                        "width": 320,
+                        "height": 72
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
                         "textColor": "#f0f0f0",
-                        "fontSize": 20,
+                        "fontSize": 34,
                         "textAlign": "center",
                         "bgColor": "#1a1a1a",
-                        "radius": 8
+                        "radius": 12
                     },
                     "commonProps": {
                         "clickable": true
@@ -149,18 +156,196 @@
                     }
                 },
                 {
+                    "type": "container",
+                    "id": "n_start",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 24,
+                        "y": 224,
+                        "width": 320,
+                        "height": 76
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "style": {
+                        "bgColor": "#F96702",
+                        "padding": 0,
+                        "radius": 12
+                    },
+                    "commonProps": {
+                        "scrollable": false,
+                        "clickable": true
+                    },
+                    "children": [
+                        {
+                            "type": "label",
+                            "id": "n_start_t",
+                            "placement": {
+                                "mode": "absolute",
+                                "x": 0,
+                                "y": 20,
+                                "width": 320,
+                                "height": 36
+                            },
+                            "layout": {
+                                "type": "none"
+                            },
+                            "style": {
+                                "textColor": "#0f0f0f",
+                                "fontSize": 28,
+                                "textAlign": "center"
+                            },
+                            "labelProps": {
+                                "text": "START RACING"
+                            }
+                        }
+                    ],
+                    "events": [
+                        {
+                            "type": "clicked",
+                            "effects": [
+                                {
+                                    "type": "emitAction",
+                                    "action": "racing.to_car",
+                                    "requireValidPress": true
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
                     "type": "label",
-                    "id": "s_car_hint",
+                    "id": "n_hint",
                     "placement": {
                         "mode": "absolute",
                         "x": 0,
-                        "y": 156,
+                        "y": 310,
                         "width": 368,
-                        "height": 18
+                        "height": 24
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
                         "textColor": "#888888",
-                        "fontSize": 12,
+                        "fontSize": 16,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": "tap the box to type"
+                    }
+                },
+                {
+                    "type": "keyboard",
+                    "id": "n_kb",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 0,
+                        "y": 336,
+                        "width": 368,
+                        "height": 112
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "keyboardProps": {
+                        "target": "n_name"
+                    },
+                    "bindings": {
+                        "commonProps.hidden": "kbHidden"
+                    }
+                }
+            ],
+            "bindings": {
+                "commonProps.hidden": "nameHidden"
+            }
+        },
+        {
+            "type": "container",
+            "id": "panel_car",
+            "placement": {
+                "mode": "absolute",
+                "x": 0,
+                "y": 0,
+                "width": 368,
+                "height": 448
+            },
+            "layout": {
+                "type": "none"
+            },
+            "style": {
+                "bgColor": "#000000",
+                "padding": 0,
+                "radius": 0
+            },
+            "commonProps": {
+                "scrollable": false,
+                "clickable": false
+            },
+            "children": [
+                {
+                    "type": "label",
+                    "id": "c_greet",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 0,
+                        "y": 18,
+                        "width": 368,
+                        "height": 34
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "style": {
+                        "textColor": "#f0f0f0",
+                        "fontSize": 26,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": ""
+                    }
+                },
+                {
+                    "type": "container",
+                    "id": "c_rule",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 34,
+                        "y": 58,
+                        "width": 300,
+                        "height": 4
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "style": {
+                        "bgColor": "#F96702",
+                        "padding": 0,
+                        "radius": 0
+                    },
+                    "commonProps": {
+                        "scrollable": false,
+                        "clickable": false
+                    },
+                    "children": []
+                },
+                {
+                    "type": "label",
+                    "id": "c_prompt",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 0,
+                        "y": 74,
+                        "width": 368,
+                        "height": 26
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "style": {
+                        "textColor": "#888888",
+                        "fontSize": 20,
                         "textAlign": "center"
                     },
                     "labelProps": {
@@ -169,53 +354,74 @@
                 },
                 {
                     "type": "container",
-                    "id": "s_car_a",
+                    "id": "c_a",
                     "placement": {
                         "mode": "absolute",
-                        "x": 30,
-                        "y": 178,
-                        "width": 145,
-                        "height": 54
+                        "x": 24,
+                        "y": 108,
+                        "width": 320,
+                        "height": 96
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
                         "bgColor": "#1a1a1a",
                         "padding": 0,
-                        "radius": 8
+                        "radius": 12
                     },
                     "commonProps": {
                         "scrollable": false,
                         "clickable": true
                     },
-                    "layout": {
-                        "type": "flex",
-                        "flexFlow": "row",
-                        "mainAlign": "center",
-                        "crossAlign": "center",
-                        "gap": 0
-                    },
                     "children": [
                         {
                             "type": "label",
-                            "id": "s_car_a_t",
+                            "id": "c_a_t",
                             "placement": {
                                 "mode": "absolute",
                                 "x": 0,
-                                "y": 0,
-                                "width": 145,
-                                "height": 20
+                                "y": 14,
+                                "width": 320,
+                                "height": 36
+                            },
+                            "layout": {
+                                "type": "none"
                             },
                             "style": {
                                 "textColor": "#f0f0f0",
-                                "fontSize": 14,
+                                "fontSize": 30,
                                 "textAlign": "center"
                             },
                             "labelProps": {
-                                "text": "Toyota"
+                                "text": "Toyota Corolla S"
+                            }
+                        },
+                        {
+                            "type": "label",
+                            "id": "c_a_s",
+                            "placement": {
+                                "mode": "absolute",
+                                "x": 0,
+                                "y": 54,
+                                "width": 320,
+                                "height": 26
+                            },
+                            "layout": {
+                                "type": "none"
+                            },
+                            "style": {
+                                "textColor": "#888888",
+                                "fontSize": 18,
+                                "textAlign": "center"
+                            },
+                            "labelProps": {
+                                "text": "reliable \u00b7 steady"
                             }
                         }
                     ],
                     "bindings": {
-                        "style.borderColor": "carAColor"
+                        "style.bgColor": "carABg"
                     },
                     "events": [
                         {
@@ -232,53 +438,74 @@
                 },
                 {
                     "type": "container",
-                    "id": "s_car_b",
+                    "id": "c_b",
                     "placement": {
                         "mode": "absolute",
-                        "x": 193,
-                        "y": 178,
-                        "width": 145,
-                        "height": 54
+                        "x": 24,
+                        "y": 216,
+                        "width": 320,
+                        "height": 96
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
                         "bgColor": "#1a1a1a",
                         "padding": 0,
-                        "radius": 8
+                        "radius": 12
                     },
                     "commonProps": {
                         "scrollable": false,
                         "clickable": true
                     },
-                    "layout": {
-                        "type": "flex",
-                        "flexFlow": "row",
-                        "mainAlign": "center",
-                        "crossAlign": "center",
-                        "gap": 0
-                    },
                     "children": [
                         {
                             "type": "label",
-                            "id": "s_car_b_t",
+                            "id": "c_b_t",
                             "placement": {
                                 "mode": "absolute",
                                 "x": 0,
-                                "y": 0,
-                                "width": 145,
-                                "height": 20
+                                "y": 14,
+                                "width": 320,
+                                "height": 36
+                            },
+                            "layout": {
+                                "type": "none"
                             },
                             "style": {
                                 "textColor": "#f0f0f0",
-                                "fontSize": 14,
+                                "fontSize": 30,
                                 "textAlign": "center"
                             },
                             "labelProps": {
                                 "text": "Porsche 911"
                             }
+                        },
+                        {
+                            "type": "label",
+                            "id": "c_b_s",
+                            "placement": {
+                                "mode": "absolute",
+                                "x": 0,
+                                "y": 54,
+                                "width": 320,
+                                "height": 26
+                            },
+                            "layout": {
+                                "type": "none"
+                            },
+                            "style": {
+                                "textColor": "#888888",
+                                "fontSize": 18,
+                                "textAlign": "center"
+                            },
+                            "labelProps": {
+                                "text": "speed \u00b7 sharp"
+                            }
                         }
                     ],
                     "bindings": {
-                        "style.borderColor": "carBColor"
+                        "style.bgColor": "carBBg"
                     },
                     "events": [
                         {
@@ -294,83 +521,44 @@
                     ]
                 },
                 {
-                    "type": "label",
-                    "id": "s_car_a_s",
-                    "placement": {
-                        "mode": "absolute",
-                        "x": 30,
-                        "y": 214,
-                        "width": 145,
-                        "height": 16
-                    },
-                    "style": {
-                        "textColor": "#888888",
-                        "fontSize": 11,
-                        "textAlign": "center"
-                    },
-                    "labelProps": {
-                        "text": "Corolla S \u00b7 reliable"
-                    }
-                },
-                {
-                    "type": "label",
-                    "id": "s_car_b_s",
-                    "placement": {
-                        "mode": "absolute",
-                        "x": 193,
-                        "y": 214,
-                        "width": 145,
-                        "height": 16
-                    },
-                    "style": {
-                        "textColor": "#888888",
-                        "fontSize": 11,
-                        "textAlign": "center"
-                    },
-                    "labelProps": {
-                        "text": "911 \u00b7 speed"
-                    }
-                },
-                {
                     "type": "container",
-                    "id": "s_go",
+                    "id": "c_go",
                     "placement": {
                         "mode": "absolute",
-                        "x": 104,
-                        "y": 246,
-                        "width": 160,
-                        "height": 56
+                        "x": 24,
+                        "y": 330,
+                        "width": 320,
+                        "height": 84
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
                         "bgColor": "#F96702",
                         "padding": 0,
-                        "radius": 10
+                        "radius": 12
                     },
                     "commonProps": {
                         "scrollable": false,
                         "clickable": true
                     },
-                    "layout": {
-                        "type": "flex",
-                        "flexFlow": "row",
-                        "mainAlign": "center",
-                        "crossAlign": "center",
-                        "gap": 0
-                    },
                     "children": [
                         {
                             "type": "label",
-                            "id": "s_go_t",
+                            "id": "c_go_t",
                             "placement": {
                                 "mode": "absolute",
                                 "x": 0,
-                                "y": 0,
-                                "width": 160,
-                                "height": 30
+                                "y": 18,
+                                "width": 320,
+                                "height": 48
+                            },
+                            "layout": {
+                                "type": "none"
                             },
                             "style": {
                                 "textColor": "#0f0f0f",
-                                "fontSize": 26,
+                                "fontSize": 40,
                                 "textAlign": "center"
                             },
                             "labelProps": {
@@ -393,62 +581,29 @@
                 },
                 {
                     "type": "label",
-                    "id": "s_hint",
+                    "id": "c_hint",
                     "placement": {
                         "mode": "absolute",
                         "x": 0,
-                        "y": 310,
+                        "y": 420,
                         "width": 368,
-                        "height": 18
+                        "height": 24
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
                         "textColor": "#888888",
-                        "fontSize": 12,
+                        "fontSize": 16,
                         "textAlign": "center"
                     },
                     "labelProps": {
-                        "text": "tap left / right side to steer"
-                    }
-                },
-                {
-                    "type": "label",
-                    "id": "s_status",
-                    "placement": {
-                        "mode": "absolute",
-                        "x": 0,
-                        "y": 330,
-                        "width": 368,
-                        "height": 18
-                    },
-                    "style": {
-                        "textColor": "#888888",
-                        "fontSize": 12,
-                        "textAlign": "center"
-                    },
-                    "labelProps": {
-                        "text": ""
-                    }
-                },
-                {
-                    "type": "keyboard",
-                    "id": "s_kb",
-                    "placement": {
-                        "mode": "absolute",
-                        "x": 0,
-                        "y": 352,
-                        "width": 368,
-                        "height": 96
-                    },
-                    "keyboardProps": {
-                        "target": "s_name"
-                    },
-                    "bindings": {
-                        "commonProps.hidden": "kbHidden"
+                        "text": "tap left / right to steer"
                     }
                 }
             ],
             "bindings": {
-                "commonProps.hidden": "startHidden"
+                "commonProps.hidden": "carHidden"
             }
         },
         {
@@ -461,6 +616,9 @@
                 "width": 368,
                 "height": 448
             },
+            "layout": {
+                "type": "none"
+            },
             "style": {
                 "bgColor": "#000000",
                 "padding": 0,
@@ -470,13 +628,6 @@
                 "scrollable": false,
                 "clickable": false
             },
-            "layout": {
-                "type": "flex",
-                "flexFlow": "row",
-                "mainAlign": "center",
-                "crossAlign": "center",
-                "gap": 0
-            },
             "children": [
                 {
                     "type": "label",
@@ -485,12 +636,15 @@
                         "mode": "absolute",
                         "x": 8,
                         "y": 6,
-                        "width": 130,
-                        "height": 20
+                        "width": 150,
+                        "height": 28
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
                         "textColor": "#f0f0f0",
-                        "fontSize": 14,
+                        "fontSize": 20,
                         "textAlign": "left"
                     },
                     "labelProps": {
@@ -502,14 +656,17 @@
                     "id": "g_lives",
                     "placement": {
                         "mode": "absolute",
-                        "x": 140,
+                        "x": 158,
                         "y": 6,
-                        "width": 88,
-                        "height": 20
+                        "width": 90,
+                        "height": 28
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
                         "textColor": "#22c55e",
-                        "fontSize": 14,
+                        "fontSize": 22,
                         "textAlign": "center"
                     },
                     "labelProps": {
@@ -518,36 +675,20 @@
                 },
                 {
                     "type": "label",
-                    "id": "g_clock",
-                    "placement": {
-                        "mode": "absolute",
-                        "x": 230,
-                        "y": 6,
-                        "width": 60,
-                        "height": 20
-                    },
-                    "style": {
-                        "textColor": "#888888",
-                        "fontSize": 14,
-                        "textAlign": "center"
-                    },
-                    "labelProps": {
-                        "text": "0:00"
-                    }
-                },
-                {
-                    "type": "label",
                     "id": "g_score",
                     "placement": {
                         "mode": "absolute",
-                        "x": 292,
-                        "y": 4,
-                        "width": 70,
-                        "height": 24
+                        "x": 250,
+                        "y": 2,
+                        "width": 112,
+                        "height": 36
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
                         "textColor": "#F96702",
-                        "fontSize": 20,
+                        "fontSize": 30,
                         "textAlign": "right"
                     },
                     "labelProps": {
@@ -560,13 +701,16 @@
                     "placement": {
                         "mode": "absolute",
                         "x": 8,
-                        "y": 28,
-                        "width": 180,
-                        "height": 18
+                        "y": 32,
+                        "width": 200,
+                        "height": 22
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
                         "textColor": "#888888",
-                        "fontSize": 12,
+                        "fontSize": 16,
                         "textAlign": "left"
                     },
                     "labelProps": {
@@ -578,14 +722,17 @@
                     "id": "g_mode",
                     "placement": {
                         "mode": "absolute",
-                        "x": 188,
-                        "y": 28,
-                        "width": 172,
-                        "height": 18
+                        "x": 208,
+                        "y": 32,
+                        "width": 152,
+                        "height": 22
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
-                        "textColor": "#888888",
-                        "fontSize": 12,
+                        "textColor": "#F96702",
+                        "fontSize": 16,
                         "textAlign": "right"
                     },
                     "labelProps": {
@@ -598,9 +745,12 @@
                     "placement": {
                         "mode": "absolute",
                         "x": 0,
-                        "y": 48,
+                        "y": 52,
                         "width": 368,
-                        "height": 2
+                        "height": 3
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
                         "bgColor": "#333333",
@@ -611,13 +761,6 @@
                         "scrollable": false,
                         "clickable": false
                     },
-                    "layout": {
-                        "type": "flex",
-                        "flexFlow": "row",
-                        "mainAlign": "center",
-                        "crossAlign": "center",
-                        "gap": 0
-                    },
                     "children": []
                 },
                 {
@@ -626,9 +769,12 @@
                     "placement": {
                         "mode": "absolute",
                         "x": 0,
-                        "y": 52,
+                        "y": 56,
                         "width": 184,
-                        "height": 344
+                        "height": 392
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
                         "bgColor": "#000000",
@@ -638,13 +784,6 @@
                     "commonProps": {
                         "scrollable": false,
                         "clickable": true
-                    },
-                    "layout": {
-                        "type": "flex",
-                        "flexFlow": "row",
-                        "mainAlign": "center",
-                        "crossAlign": "center",
-                        "gap": 0
                     },
                     "children": [],
                     "events": [
@@ -666,9 +805,12 @@
                     "placement": {
                         "mode": "absolute",
                         "x": 184,
-                        "y": 52,
+                        "y": 56,
                         "width": 184,
-                        "height": 344
+                        "height": 392
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
                         "bgColor": "#000000",
@@ -678,13 +820,6 @@
                     "commonProps": {
                         "scrollable": false,
                         "clickable": true
-                    },
-                    "layout": {
-                        "type": "flex",
-                        "flexFlow": "row",
-                        "mainAlign": "center",
-                        "crossAlign": "center",
-                        "gap": 0
                     },
                     "children": [],
                     "events": [
@@ -706,9 +841,12 @@
                     "placement": {
                         "mode": "absolute",
                         "x": 122,
-                        "y": 52,
+                        "y": 56,
                         "width": 2,
-                        "height": 344
+                        "height": 392
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
                         "bgColor": "#1e1e1e",
@@ -718,13 +856,6 @@
                     "commonProps": {
                         "scrollable": false,
                         "clickable": false
-                    },
-                    "layout": {
-                        "type": "flex",
-                        "flexFlow": "row",
-                        "mainAlign": "center",
-                        "crossAlign": "center",
-                        "gap": 0
                     },
                     "children": []
                 },
@@ -734,9 +865,12 @@
                     "placement": {
                         "mode": "absolute",
                         "x": 246,
-                        "y": 52,
+                        "y": 56,
                         "width": 2,
-                        "height": 344
+                        "height": 392
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
                         "bgColor": "#1e1e1e",
@@ -747,13 +881,6 @@
                         "scrollable": false,
                         "clickable": false
                     },
-                    "layout": {
-                        "type": "flex",
-                        "flexFlow": "row",
-                        "mainAlign": "center",
-                        "crossAlign": "center",
-                        "gap": 0
-                    },
                     "children": []
                 },
                 {
@@ -761,26 +888,22 @@
                     "id": "g_obs0",
                     "placement": {
                         "mode": "absolute",
-                        "x": 42,
-                        "y": -80,
-                        "width": 38,
-                        "height": 38
+                        "x": 39,
+                        "y": -90,
+                        "width": 44,
+                        "height": 44
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
                         "bgColor": "#f5a623",
                         "padding": 0,
-                        "radius": 6
+                        "radius": 8
                     },
                     "commonProps": {
                         "scrollable": false,
                         "clickable": false
-                    },
-                    "layout": {
-                        "type": "flex",
-                        "flexFlow": "row",
-                        "mainAlign": "center",
-                        "crossAlign": "center",
-                        "gap": 0
                     },
                     "children": [],
                     "bindings": {
@@ -795,26 +918,22 @@
                     "id": "g_obs1",
                     "placement": {
                         "mode": "absolute",
-                        "x": 42,
-                        "y": -80,
-                        "width": 38,
-                        "height": 38
+                        "x": 39,
+                        "y": -90,
+                        "width": 44,
+                        "height": 44
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
                         "bgColor": "#f5a623",
                         "padding": 0,
-                        "radius": 6
+                        "radius": 8
                     },
                     "commonProps": {
                         "scrollable": false,
                         "clickable": false
-                    },
-                    "layout": {
-                        "type": "flex",
-                        "flexFlow": "row",
-                        "mainAlign": "center",
-                        "crossAlign": "center",
-                        "gap": 0
                     },
                     "children": [],
                     "bindings": {
@@ -829,26 +948,22 @@
                     "id": "g_obs2",
                     "placement": {
                         "mode": "absolute",
-                        "x": 42,
-                        "y": -80,
-                        "width": 38,
-                        "height": 38
+                        "x": 39,
+                        "y": -90,
+                        "width": 44,
+                        "height": 44
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
                         "bgColor": "#f5a623",
                         "padding": 0,
-                        "radius": 6
+                        "radius": 8
                     },
                     "commonProps": {
                         "scrollable": false,
                         "clickable": false
-                    },
-                    "layout": {
-                        "type": "flex",
-                        "flexFlow": "row",
-                        "mainAlign": "center",
-                        "crossAlign": "center",
-                        "gap": 0
                     },
                     "children": [],
                     "bindings": {
@@ -863,26 +978,22 @@
                     "id": "g_obs3",
                     "placement": {
                         "mode": "absolute",
-                        "x": 42,
-                        "y": -80,
-                        "width": 38,
-                        "height": 38
+                        "x": 39,
+                        "y": -90,
+                        "width": 44,
+                        "height": 44
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
                         "bgColor": "#f5a623",
                         "padding": 0,
-                        "radius": 6
+                        "radius": 8
                     },
                     "commonProps": {
                         "scrollable": false,
                         "clickable": false
-                    },
-                    "layout": {
-                        "type": "flex",
-                        "flexFlow": "row",
-                        "mainAlign": "center",
-                        "crossAlign": "center",
-                        "gap": 0
                     },
                     "children": [],
                     "bindings": {
@@ -897,26 +1008,22 @@
                     "id": "g_obs4",
                     "placement": {
                         "mode": "absolute",
-                        "x": 42,
-                        "y": -80,
-                        "width": 38,
-                        "height": 38
+                        "x": 39,
+                        "y": -90,
+                        "width": 44,
+                        "height": 44
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
                         "bgColor": "#f5a623",
                         "padding": 0,
-                        "radius": 6
+                        "radius": 8
                     },
                     "commonProps": {
                         "scrollable": false,
                         "clickable": false
-                    },
-                    "layout": {
-                        "type": "flex",
-                        "flexFlow": "row",
-                        "mainAlign": "center",
-                        "crossAlign": "center",
-                        "gap": 0
                     },
                     "children": [],
                     "bindings": {
@@ -931,26 +1038,22 @@
                     "id": "g_obs5",
                     "placement": {
                         "mode": "absolute",
-                        "x": 42,
-                        "y": -80,
-                        "width": 38,
-                        "height": 38
+                        "x": 39,
+                        "y": -90,
+                        "width": 44,
+                        "height": 44
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
                         "bgColor": "#f5a623",
                         "padding": 0,
-                        "radius": 6
+                        "radius": 8
                     },
                     "commonProps": {
                         "scrollable": false,
                         "clickable": false
-                    },
-                    "layout": {
-                        "type": "flex",
-                        "flexFlow": "row",
-                        "mainAlign": "center",
-                        "crossAlign": "center",
-                        "gap": 0
                     },
                     "children": [],
                     "bindings": {
@@ -965,26 +1068,22 @@
                     "id": "g_car",
                     "placement": {
                         "mode": "absolute",
-                        "x": 158,
-                        "y": 320,
-                        "width": 52,
-                        "height": 68
+                        "x": 156,
+                        "y": 300,
+                        "width": 56,
+                        "height": 74
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
                         "bgColor": "#e8e8ee",
                         "padding": 0,
-                        "radius": 8
+                        "radius": 10
                     },
                     "commonProps": {
                         "scrollable": false,
                         "clickable": false
-                    },
-                    "layout": {
-                        "type": "flex",
-                        "flexFlow": "row",
-                        "mainAlign": "center",
-                        "crossAlign": "center",
-                        "gap": 0
                     },
                     "children": [
                         {
@@ -993,13 +1092,16 @@
                             "placement": {
                                 "mode": "absolute",
                                 "x": 0,
-                                "y": 0,
-                                "width": 52,
-                                "height": 20
+                                "y": 24,
+                                "width": 56,
+                                "height": 26
+                            },
+                            "layout": {
+                                "type": "none"
                             },
                             "style": {
                                 "textColor": "#111111",
-                                "fontSize": 12,
+                                "fontSize": 18,
                                 "textAlign": "center"
                             },
                             "labelProps": {
@@ -1018,13 +1120,16 @@
                     "placement": {
                         "mode": "absolute",
                         "x": 0,
-                        "y": 268,
+                        "y": 240,
                         "width": 368,
-                        "height": 22
+                        "height": 34
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
                         "textColor": "#F96702",
-                        "fontSize": 15,
+                        "fontSize": 24,
                         "textAlign": "center"
                     },
                     "labelProps": {
@@ -1046,6 +1151,9 @@
                 "width": 368,
                 "height": 448
             },
+            "layout": {
+                "type": "none"
+            },
             "style": {
                 "bgColor": "#000000",
                 "padding": 0,
@@ -1055,13 +1163,6 @@
                 "scrollable": false,
                 "clickable": false
             },
-            "layout": {
-                "type": "flex",
-                "flexFlow": "row",
-                "mainAlign": "center",
-                "crossAlign": "center",
-                "gap": 0
-            },
             "children": [
                 {
                     "type": "label",
@@ -1069,13 +1170,16 @@
                     "placement": {
                         "mode": "absolute",
                         "x": 0,
-                        "y": 22,
+                        "y": 12,
                         "width": 368,
-                        "height": 26
+                        "height": 34
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
                         "textColor": "#F96702",
-                        "fontSize": 20,
+                        "fontSize": 26,
                         "textAlign": "center"
                     },
                     "labelProps": {
@@ -1088,9 +1192,12 @@
                     "placement": {
                         "mode": "absolute",
                         "x": 60,
-                        "y": 52,
+                        "y": 50,
                         "width": 248,
-                        "height": 3
+                        "height": 4
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
                         "bgColor": "#F96702",
@@ -1101,13 +1208,6 @@
                         "scrollable": false,
                         "clickable": false
                     },
-                    "layout": {
-                        "type": "flex",
-                        "flexFlow": "row",
-                        "mainAlign": "center",
-                        "crossAlign": "center",
-                        "gap": 0
-                    },
                     "children": []
                 },
                 {
@@ -1116,55 +1216,20 @@
                     "placement": {
                         "mode": "absolute",
                         "x": 0,
-                        "y": 64,
+                        "y": 60,
                         "width": 368,
-                        "height": 30
+                        "height": 34
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
                         "textColor": "#f0f0f0",
-                        "fontSize": 22,
+                        "fontSize": 24,
                         "textAlign": "center"
                     },
                     "labelProps": {
                         "text": ""
-                    }
-                },
-                {
-                    "type": "label",
-                    "id": "o_sub",
-                    "placement": {
-                        "mode": "absolute",
-                        "x": 0,
-                        "y": 96,
-                        "width": 368,
-                        "height": 36
-                    },
-                    "style": {
-                        "textColor": "#888888",
-                        "fontSize": 12,
-                        "textAlign": "center"
-                    },
-                    "labelProps": {
-                        "text": ""
-                    }
-                },
-                {
-                    "type": "label",
-                    "id": "o_score_l",
-                    "placement": {
-                        "mode": "absolute",
-                        "x": 0,
-                        "y": 140,
-                        "width": 368,
-                        "height": 18
-                    },
-                    "style": {
-                        "textColor": "#888888",
-                        "fontSize": 13,
-                        "textAlign": "center"
-                    },
-                    "labelProps": {
-                        "text": "SCORE"
                     }
                 },
                 {
@@ -1173,13 +1238,16 @@
                     "placement": {
                         "mode": "absolute",
                         "x": 0,
-                        "y": 158,
+                        "y": 96,
                         "width": 368,
-                        "height": 52
+                        "height": 68
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
                         "textColor": "#F96702",
-                        "fontSize": 44,
+                        "fontSize": 56,
                         "textAlign": "center"
                     },
                     "labelProps": {
@@ -1192,13 +1260,16 @@
                     "placement": {
                         "mode": "absolute",
                         "x": 0,
-                        "y": 214,
+                        "y": 166,
                         "width": 368,
-                        "height": 20
+                        "height": 28
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
                         "textColor": "#f0f0f0",
-                        "fontSize": 14,
+                        "fontSize": 18,
                         "textAlign": "center"
                     },
                     "labelProps": {
@@ -1211,13 +1282,16 @@
                     "placement": {
                         "mode": "absolute",
                         "x": 0,
-                        "y": 244,
+                        "y": 200,
                         "width": 368,
-                        "height": 18
+                        "height": 24
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
                         "textColor": "#888888",
-                        "fontSize": 12,
+                        "fontSize": 16,
                         "textAlign": "center"
                     },
                     "labelProps": {
@@ -1230,13 +1304,16 @@
                     "placement": {
                         "mode": "absolute",
                         "x": 0,
-                        "y": 264,
+                        "y": 224,
                         "width": 368,
-                        "height": 20
+                        "height": 28
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
                         "textColor": "#FFD700",
-                        "fontSize": 15,
+                        "fontSize": 20,
                         "textAlign": "center"
                     },
                     "labelProps": {
@@ -1249,13 +1326,16 @@
                     "placement": {
                         "mode": "absolute",
                         "x": 0,
-                        "y": 286,
+                        "y": 252,
                         "width": 368,
-                        "height": 20
+                        "height": 28
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
                         "textColor": "#C0C0C0",
-                        "fontSize": 15,
+                        "fontSize": 20,
                         "textAlign": "center"
                     },
                     "labelProps": {
@@ -1268,13 +1348,16 @@
                     "placement": {
                         "mode": "absolute",
                         "x": 0,
-                        "y": 308,
+                        "y": 280,
                         "width": 368,
-                        "height": 20
+                        "height": 28
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
                         "textColor": "#CD7F32",
-                        "fontSize": 15,
+                        "fontSize": 20,
                         "textAlign": "center"
                     },
                     "labelProps": {
@@ -1286,26 +1369,22 @@
                     "id": "o_again",
                     "placement": {
                         "mode": "absolute",
-                        "x": 84,
-                        "y": 340,
-                        "width": 200,
-                        "height": 54
+                        "x": 24,
+                        "y": 320,
+                        "width": 320,
+                        "height": 84
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
                         "bgColor": "#F96702",
                         "padding": 0,
-                        "radius": 10
+                        "radius": 12
                     },
                     "commonProps": {
                         "scrollable": false,
                         "clickable": true
-                    },
-                    "layout": {
-                        "type": "flex",
-                        "flexFlow": "row",
-                        "mainAlign": "center",
-                        "crossAlign": "center",
-                        "gap": 0
                     },
                     "children": [
                         {
@@ -1314,13 +1393,16 @@
                             "placement": {
                                 "mode": "absolute",
                                 "x": 0,
-                                "y": 0,
-                                "width": 200,
-                                "height": 28
+                                "y": 23,
+                                "width": 320,
+                                "height": 38
+                            },
+                            "layout": {
+                                "type": "none"
                             },
                             "style": {
                                 "textColor": "#0f0f0f",
-                                "fontSize": 20,
+                                "fontSize": 30,
                                 "textAlign": "center"
                             },
                             "labelProps": {
@@ -1347,13 +1429,16 @@
                     "placement": {
                         "mode": "absolute",
                         "x": 0,
-                        "y": 404,
+                        "y": 412,
                         "width": 368,
-                        "height": 20
+                        "height": 24
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
                         "textColor": "#888888",
-                        "fontSize": 13,
+                        "fontSize": 16,
                         "textAlign": "center"
                     },
                     "labelProps": {
