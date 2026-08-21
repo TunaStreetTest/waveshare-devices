@@ -1,0 +1,1369 @@
+{
+    "type": "viewScreen",
+    "id": "home",
+    "style": {
+        "bgColor": "#000000",
+        "padding": 0
+    },
+    "commonProps": {
+        "scrollable": false,
+        "clickable": true
+    },
+    "children": [
+        {
+            "type": "container",
+            "id": "panel_start",
+            "placement": {
+                "mode": "absolute",
+                "x": 0,
+                "y": 0,
+                "width": 368,
+                "height": 448
+            },
+            "style": {
+                "bgColor": "#000000",
+                "padding": 0,
+                "radius": 0
+            },
+            "commonProps": {
+                "scrollable": false,
+                "clickable": false
+            },
+            "layout": {
+                "type": "flex",
+                "flexFlow": "row",
+                "mainAlign": "center",
+                "crossAlign": "center",
+                "gap": 0
+            },
+            "children": [
+                {
+                    "type": "label",
+                    "id": "s_brand_l",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 0,
+                        "y": 26,
+                        "width": 200,
+                        "height": 34
+                    },
+                    "style": {
+                        "textColor": "#f0f0f0",
+                        "fontSize": 24,
+                        "textAlign": "right"
+                    },
+                    "labelProps": {
+                        "text": "CLOUDERA"
+                    }
+                },
+                {
+                    "type": "label",
+                    "id": "s_brand_r",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 204,
+                        "y": 26,
+                        "width": 120,
+                        "height": 34
+                    },
+                    "style": {
+                        "textColor": "#F96702",
+                        "fontSize": 24,
+                        "textAlign": "left"
+                    },
+                    "labelProps": {
+                        "text": " RACING"
+                    }
+                },
+                {
+                    "type": "container",
+                    "id": "s_rule",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 40,
+                        "y": 64,
+                        "width": 288,
+                        "height": 3
+                    },
+                    "style": {
+                        "bgColor": "#F96702",
+                        "padding": 0,
+                        "radius": 0
+                    },
+                    "commonProps": {
+                        "scrollable": false,
+                        "clickable": false
+                    },
+                    "layout": {
+                        "type": "flex",
+                        "flexFlow": "row",
+                        "mainAlign": "center",
+                        "crossAlign": "center",
+                        "gap": 0
+                    },
+                    "children": []
+                },
+                {
+                    "type": "label",
+                    "id": "s_prompt",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 0,
+                        "y": 80,
+                        "width": 368,
+                        "height": 20
+                    },
+                    "style": {
+                        "textColor": "#888888",
+                        "fontSize": 14,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": "ENTER YOUR NAME"
+                    }
+                },
+                {
+                    "type": "textInput",
+                    "id": "s_name",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 44,
+                        "y": 104,
+                        "width": 280,
+                        "height": 44
+                    },
+                    "style": {
+                        "textColor": "#f0f0f0",
+                        "fontSize": 20,
+                        "textAlign": "center",
+                        "bgColor": "#1a1a1a",
+                        "radius": 8
+                    },
+                    "commonProps": {
+                        "clickable": true
+                    },
+                    "textInputProps": {
+                        "text": "",
+                        "placeholder": "Driver",
+                        "maxLength": 12
+                    }
+                },
+                {
+                    "type": "label",
+                    "id": "s_car_hint",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 0,
+                        "y": 156,
+                        "width": 368,
+                        "height": 18
+                    },
+                    "style": {
+                        "textColor": "#888888",
+                        "fontSize": 12,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": "PICK YOUR CAR"
+                    }
+                },
+                {
+                    "type": "container",
+                    "id": "s_car_a",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 30,
+                        "y": 178,
+                        "width": 145,
+                        "height": 54
+                    },
+                    "style": {
+                        "bgColor": "#1a1a1a",
+                        "padding": 0,
+                        "radius": 8
+                    },
+                    "commonProps": {
+                        "scrollable": false,
+                        "clickable": true
+                    },
+                    "layout": {
+                        "type": "flex",
+                        "flexFlow": "row",
+                        "mainAlign": "center",
+                        "crossAlign": "center",
+                        "gap": 0
+                    },
+                    "children": [
+                        {
+                            "type": "label",
+                            "id": "s_car_a_t",
+                            "placement": {
+                                "mode": "absolute",
+                                "x": 0,
+                                "y": 0,
+                                "width": 145,
+                                "height": 20
+                            },
+                            "style": {
+                                "textColor": "#f0f0f0",
+                                "fontSize": 14,
+                                "textAlign": "center"
+                            },
+                            "labelProps": {
+                                "text": "Toyota"
+                            }
+                        }
+                    ],
+                    "bindings": {
+                        "style.borderColor": "carAColor"
+                    },
+                    "events": [
+                        {
+                            "type": "clicked",
+                            "effects": [
+                                {
+                                    "type": "emitAction",
+                                    "action": "racing.car_a",
+                                    "requireValidPress": true
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "container",
+                    "id": "s_car_b",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 193,
+                        "y": 178,
+                        "width": 145,
+                        "height": 54
+                    },
+                    "style": {
+                        "bgColor": "#1a1a1a",
+                        "padding": 0,
+                        "radius": 8
+                    },
+                    "commonProps": {
+                        "scrollable": false,
+                        "clickable": true
+                    },
+                    "layout": {
+                        "type": "flex",
+                        "flexFlow": "row",
+                        "mainAlign": "center",
+                        "crossAlign": "center",
+                        "gap": 0
+                    },
+                    "children": [
+                        {
+                            "type": "label",
+                            "id": "s_car_b_t",
+                            "placement": {
+                                "mode": "absolute",
+                                "x": 0,
+                                "y": 0,
+                                "width": 145,
+                                "height": 20
+                            },
+                            "style": {
+                                "textColor": "#f0f0f0",
+                                "fontSize": 14,
+                                "textAlign": "center"
+                            },
+                            "labelProps": {
+                                "text": "Porsche 911"
+                            }
+                        }
+                    ],
+                    "bindings": {
+                        "style.borderColor": "carBColor"
+                    },
+                    "events": [
+                        {
+                            "type": "clicked",
+                            "effects": [
+                                {
+                                    "type": "emitAction",
+                                    "action": "racing.car_b",
+                                    "requireValidPress": true
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "label",
+                    "id": "s_car_a_s",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 30,
+                        "y": 214,
+                        "width": 145,
+                        "height": 16
+                    },
+                    "style": {
+                        "textColor": "#888888",
+                        "fontSize": 11,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": "Corolla S \u00b7 reliable"
+                    }
+                },
+                {
+                    "type": "label",
+                    "id": "s_car_b_s",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 193,
+                        "y": 214,
+                        "width": 145,
+                        "height": 16
+                    },
+                    "style": {
+                        "textColor": "#888888",
+                        "fontSize": 11,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": "911 \u00b7 speed"
+                    }
+                },
+                {
+                    "type": "container",
+                    "id": "s_go",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 104,
+                        "y": 246,
+                        "width": 160,
+                        "height": 56
+                    },
+                    "style": {
+                        "bgColor": "#F96702",
+                        "padding": 0,
+                        "radius": 10
+                    },
+                    "commonProps": {
+                        "scrollable": false,
+                        "clickable": true
+                    },
+                    "layout": {
+                        "type": "flex",
+                        "flexFlow": "row",
+                        "mainAlign": "center",
+                        "crossAlign": "center",
+                        "gap": 0
+                    },
+                    "children": [
+                        {
+                            "type": "label",
+                            "id": "s_go_t",
+                            "placement": {
+                                "mode": "absolute",
+                                "x": 0,
+                                "y": 0,
+                                "width": 160,
+                                "height": 30
+                            },
+                            "style": {
+                                "textColor": "#0f0f0f",
+                                "fontSize": 26,
+                                "textAlign": "center"
+                            },
+                            "labelProps": {
+                                "text": "GO!"
+                            }
+                        }
+                    ],
+                    "events": [
+                        {
+                            "type": "clicked",
+                            "effects": [
+                                {
+                                    "type": "emitAction",
+                                    "action": "racing.go",
+                                    "requireValidPress": true
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "label",
+                    "id": "s_hint",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 0,
+                        "y": 310,
+                        "width": 368,
+                        "height": 18
+                    },
+                    "style": {
+                        "textColor": "#888888",
+                        "fontSize": 12,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": "tap left / right side to steer"
+                    }
+                },
+                {
+                    "type": "label",
+                    "id": "s_status",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 0,
+                        "y": 330,
+                        "width": 368,
+                        "height": 18
+                    },
+                    "style": {
+                        "textColor": "#888888",
+                        "fontSize": 12,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": ""
+                    }
+                },
+                {
+                    "type": "keyboard",
+                    "id": "s_kb",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 0,
+                        "y": 352,
+                        "width": 368,
+                        "height": 96
+                    },
+                    "keyboardProps": {
+                        "target": "s_name"
+                    },
+                    "bindings": {
+                        "commonProps.hidden": "kbHidden"
+                    }
+                }
+            ],
+            "bindings": {
+                "commonProps.hidden": "startHidden"
+            }
+        },
+        {
+            "type": "container",
+            "id": "panel_game",
+            "placement": {
+                "mode": "absolute",
+                "x": 0,
+                "y": 0,
+                "width": 368,
+                "height": 448
+            },
+            "style": {
+                "bgColor": "#000000",
+                "padding": 0,
+                "radius": 0
+            },
+            "commonProps": {
+                "scrollable": false,
+                "clickable": false
+            },
+            "layout": {
+                "type": "flex",
+                "flexFlow": "row",
+                "mainAlign": "center",
+                "crossAlign": "center",
+                "gap": 0
+            },
+            "children": [
+                {
+                    "type": "label",
+                    "id": "g_name",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 8,
+                        "y": 6,
+                        "width": 130,
+                        "height": 20
+                    },
+                    "style": {
+                        "textColor": "#f0f0f0",
+                        "fontSize": 14,
+                        "textAlign": "left"
+                    },
+                    "labelProps": {
+                        "text": ""
+                    }
+                },
+                {
+                    "type": "label",
+                    "id": "g_lives",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 140,
+                        "y": 6,
+                        "width": 88,
+                        "height": 20
+                    },
+                    "style": {
+                        "textColor": "#22c55e",
+                        "fontSize": 14,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": "***"
+                    }
+                },
+                {
+                    "type": "label",
+                    "id": "g_clock",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 230,
+                        "y": 6,
+                        "width": 60,
+                        "height": 20
+                    },
+                    "style": {
+                        "textColor": "#888888",
+                        "fontSize": 14,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": "0:00"
+                    }
+                },
+                {
+                    "type": "label",
+                    "id": "g_score",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 292,
+                        "y": 4,
+                        "width": 70,
+                        "height": 24
+                    },
+                    "style": {
+                        "textColor": "#F96702",
+                        "fontSize": 20,
+                        "textAlign": "right"
+                    },
+                    "labelProps": {
+                        "text": "0"
+                    }
+                },
+                {
+                    "type": "label",
+                    "id": "g_speed",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 8,
+                        "y": 28,
+                        "width": 180,
+                        "height": 18
+                    },
+                    "style": {
+                        "textColor": "#888888",
+                        "fontSize": 12,
+                        "textAlign": "left"
+                    },
+                    "labelProps": {
+                        "text": "Lv.1 \u00b7 60 km/h"
+                    }
+                },
+                {
+                    "type": "label",
+                    "id": "g_mode",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 188,
+                        "y": 28,
+                        "width": 172,
+                        "height": 18
+                    },
+                    "style": {
+                        "textColor": "#888888",
+                        "fontSize": 12,
+                        "textAlign": "right"
+                    },
+                    "labelProps": {
+                        "text": ""
+                    }
+                },
+                {
+                    "type": "container",
+                    "id": "g_rule",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 0,
+                        "y": 48,
+                        "width": 368,
+                        "height": 2
+                    },
+                    "style": {
+                        "bgColor": "#333333",
+                        "padding": 0,
+                        "radius": 0
+                    },
+                    "commonProps": {
+                        "scrollable": false,
+                        "clickable": false
+                    },
+                    "layout": {
+                        "type": "flex",
+                        "flexFlow": "row",
+                        "mainAlign": "center",
+                        "crossAlign": "center",
+                        "gap": 0
+                    },
+                    "children": []
+                },
+                {
+                    "type": "container",
+                    "id": "g_tz_l",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 0,
+                        "y": 52,
+                        "width": 184,
+                        "height": 344
+                    },
+                    "style": {
+                        "bgColor": "#000000",
+                        "padding": 0,
+                        "radius": 0
+                    },
+                    "commonProps": {
+                        "scrollable": false,
+                        "clickable": true
+                    },
+                    "layout": {
+                        "type": "flex",
+                        "flexFlow": "row",
+                        "mainAlign": "center",
+                        "crossAlign": "center",
+                        "gap": 0
+                    },
+                    "children": [],
+                    "events": [
+                        {
+                            "type": "clicked",
+                            "effects": [
+                                {
+                                    "type": "emitAction",
+                                    "action": "racing.left",
+                                    "requireValidPress": true
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "container",
+                    "id": "g_tz_r",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 184,
+                        "y": 52,
+                        "width": 184,
+                        "height": 344
+                    },
+                    "style": {
+                        "bgColor": "#000000",
+                        "padding": 0,
+                        "radius": 0
+                    },
+                    "commonProps": {
+                        "scrollable": false,
+                        "clickable": true
+                    },
+                    "layout": {
+                        "type": "flex",
+                        "flexFlow": "row",
+                        "mainAlign": "center",
+                        "crossAlign": "center",
+                        "gap": 0
+                    },
+                    "children": [],
+                    "events": [
+                        {
+                            "type": "clicked",
+                            "effects": [
+                                {
+                                    "type": "emitAction",
+                                    "action": "racing.right",
+                                    "requireValidPress": true
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "container",
+                    "id": "g_div_122",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 122,
+                        "y": 52,
+                        "width": 2,
+                        "height": 344
+                    },
+                    "style": {
+                        "bgColor": "#1e1e1e",
+                        "padding": 0,
+                        "radius": 0
+                    },
+                    "commonProps": {
+                        "scrollable": false,
+                        "clickable": false
+                    },
+                    "layout": {
+                        "type": "flex",
+                        "flexFlow": "row",
+                        "mainAlign": "center",
+                        "crossAlign": "center",
+                        "gap": 0
+                    },
+                    "children": []
+                },
+                {
+                    "type": "container",
+                    "id": "g_div_246",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 246,
+                        "y": 52,
+                        "width": 2,
+                        "height": 344
+                    },
+                    "style": {
+                        "bgColor": "#1e1e1e",
+                        "padding": 0,
+                        "radius": 0
+                    },
+                    "commonProps": {
+                        "scrollable": false,
+                        "clickable": false
+                    },
+                    "layout": {
+                        "type": "flex",
+                        "flexFlow": "row",
+                        "mainAlign": "center",
+                        "crossAlign": "center",
+                        "gap": 0
+                    },
+                    "children": []
+                },
+                {
+                    "type": "container",
+                    "id": "g_obs0",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 42,
+                        "y": -80,
+                        "width": 38,
+                        "height": 38
+                    },
+                    "style": {
+                        "bgColor": "#f5a623",
+                        "padding": 0,
+                        "radius": 6
+                    },
+                    "commonProps": {
+                        "scrollable": false,
+                        "clickable": false
+                    },
+                    "layout": {
+                        "type": "flex",
+                        "flexFlow": "row",
+                        "mainAlign": "center",
+                        "crossAlign": "center",
+                        "gap": 0
+                    },
+                    "children": [],
+                    "bindings": {
+                        "placement.x": "obs0X",
+                        "placement.y": "obs0Y",
+                        "style.bgColor": "obs0C",
+                        "commonProps.hidden": "obs0H"
+                    }
+                },
+                {
+                    "type": "container",
+                    "id": "g_obs1",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 42,
+                        "y": -80,
+                        "width": 38,
+                        "height": 38
+                    },
+                    "style": {
+                        "bgColor": "#f5a623",
+                        "padding": 0,
+                        "radius": 6
+                    },
+                    "commonProps": {
+                        "scrollable": false,
+                        "clickable": false
+                    },
+                    "layout": {
+                        "type": "flex",
+                        "flexFlow": "row",
+                        "mainAlign": "center",
+                        "crossAlign": "center",
+                        "gap": 0
+                    },
+                    "children": [],
+                    "bindings": {
+                        "placement.x": "obs1X",
+                        "placement.y": "obs1Y",
+                        "style.bgColor": "obs1C",
+                        "commonProps.hidden": "obs1H"
+                    }
+                },
+                {
+                    "type": "container",
+                    "id": "g_obs2",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 42,
+                        "y": -80,
+                        "width": 38,
+                        "height": 38
+                    },
+                    "style": {
+                        "bgColor": "#f5a623",
+                        "padding": 0,
+                        "radius": 6
+                    },
+                    "commonProps": {
+                        "scrollable": false,
+                        "clickable": false
+                    },
+                    "layout": {
+                        "type": "flex",
+                        "flexFlow": "row",
+                        "mainAlign": "center",
+                        "crossAlign": "center",
+                        "gap": 0
+                    },
+                    "children": [],
+                    "bindings": {
+                        "placement.x": "obs2X",
+                        "placement.y": "obs2Y",
+                        "style.bgColor": "obs2C",
+                        "commonProps.hidden": "obs2H"
+                    }
+                },
+                {
+                    "type": "container",
+                    "id": "g_obs3",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 42,
+                        "y": -80,
+                        "width": 38,
+                        "height": 38
+                    },
+                    "style": {
+                        "bgColor": "#f5a623",
+                        "padding": 0,
+                        "radius": 6
+                    },
+                    "commonProps": {
+                        "scrollable": false,
+                        "clickable": false
+                    },
+                    "layout": {
+                        "type": "flex",
+                        "flexFlow": "row",
+                        "mainAlign": "center",
+                        "crossAlign": "center",
+                        "gap": 0
+                    },
+                    "children": [],
+                    "bindings": {
+                        "placement.x": "obs3X",
+                        "placement.y": "obs3Y",
+                        "style.bgColor": "obs3C",
+                        "commonProps.hidden": "obs3H"
+                    }
+                },
+                {
+                    "type": "container",
+                    "id": "g_obs4",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 42,
+                        "y": -80,
+                        "width": 38,
+                        "height": 38
+                    },
+                    "style": {
+                        "bgColor": "#f5a623",
+                        "padding": 0,
+                        "radius": 6
+                    },
+                    "commonProps": {
+                        "scrollable": false,
+                        "clickable": false
+                    },
+                    "layout": {
+                        "type": "flex",
+                        "flexFlow": "row",
+                        "mainAlign": "center",
+                        "crossAlign": "center",
+                        "gap": 0
+                    },
+                    "children": [],
+                    "bindings": {
+                        "placement.x": "obs4X",
+                        "placement.y": "obs4Y",
+                        "style.bgColor": "obs4C",
+                        "commonProps.hidden": "obs4H"
+                    }
+                },
+                {
+                    "type": "container",
+                    "id": "g_obs5",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 42,
+                        "y": -80,
+                        "width": 38,
+                        "height": 38
+                    },
+                    "style": {
+                        "bgColor": "#f5a623",
+                        "padding": 0,
+                        "radius": 6
+                    },
+                    "commonProps": {
+                        "scrollable": false,
+                        "clickable": false
+                    },
+                    "layout": {
+                        "type": "flex",
+                        "flexFlow": "row",
+                        "mainAlign": "center",
+                        "crossAlign": "center",
+                        "gap": 0
+                    },
+                    "children": [],
+                    "bindings": {
+                        "placement.x": "obs5X",
+                        "placement.y": "obs5Y",
+                        "style.bgColor": "obs5C",
+                        "commonProps.hidden": "obs5H"
+                    }
+                },
+                {
+                    "type": "container",
+                    "id": "g_car",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 158,
+                        "y": 320,
+                        "width": 52,
+                        "height": 68
+                    },
+                    "style": {
+                        "bgColor": "#e8e8ee",
+                        "padding": 0,
+                        "radius": 8
+                    },
+                    "commonProps": {
+                        "scrollable": false,
+                        "clickable": false
+                    },
+                    "layout": {
+                        "type": "flex",
+                        "flexFlow": "row",
+                        "mainAlign": "center",
+                        "crossAlign": "center",
+                        "gap": 0
+                    },
+                    "children": [
+                        {
+                            "type": "label",
+                            "id": "g_car_t",
+                            "placement": {
+                                "mode": "absolute",
+                                "x": 0,
+                                "y": 0,
+                                "width": 52,
+                                "height": 20
+                            },
+                            "style": {
+                                "textColor": "#111111",
+                                "fontSize": 12,
+                                "textAlign": "center"
+                            },
+                            "labelProps": {
+                                "text": ""
+                            }
+                        }
+                    ],
+                    "bindings": {
+                        "placement.x": "carX",
+                        "style.bgColor": "carColor"
+                    }
+                },
+                {
+                    "type": "label",
+                    "id": "g_toast",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 0,
+                        "y": 268,
+                        "width": 368,
+                        "height": 22
+                    },
+                    "style": {
+                        "textColor": "#F96702",
+                        "fontSize": 15,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": ""
+                    }
+                }
+            ],
+            "bindings": {
+                "commonProps.hidden": "gameHidden"
+            }
+        },
+        {
+            "type": "container",
+            "id": "panel_over",
+            "placement": {
+                "mode": "absolute",
+                "x": 0,
+                "y": 0,
+                "width": 368,
+                "height": 448
+            },
+            "style": {
+                "bgColor": "#000000",
+                "padding": 0,
+                "radius": 0
+            },
+            "commonProps": {
+                "scrollable": false,
+                "clickable": false
+            },
+            "layout": {
+                "type": "flex",
+                "flexFlow": "row",
+                "mainAlign": "center",
+                "crossAlign": "center",
+                "gap": 0
+            },
+            "children": [
+                {
+                    "type": "label",
+                    "id": "o_head",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 0,
+                        "y": 22,
+                        "width": 368,
+                        "height": 26
+                    },
+                    "style": {
+                        "textColor": "#F96702",
+                        "fontSize": 20,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": "RACE OVER"
+                    }
+                },
+                {
+                    "type": "container",
+                    "id": "o_rule",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 60,
+                        "y": 52,
+                        "width": 248,
+                        "height": 3
+                    },
+                    "style": {
+                        "bgColor": "#F96702",
+                        "padding": 0,
+                        "radius": 0
+                    },
+                    "commonProps": {
+                        "scrollable": false,
+                        "clickable": false
+                    },
+                    "layout": {
+                        "type": "flex",
+                        "flexFlow": "row",
+                        "mainAlign": "center",
+                        "crossAlign": "center",
+                        "gap": 0
+                    },
+                    "children": []
+                },
+                {
+                    "type": "label",
+                    "id": "o_rank",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 0,
+                        "y": 64,
+                        "width": 368,
+                        "height": 30
+                    },
+                    "style": {
+                        "textColor": "#f0f0f0",
+                        "fontSize": 22,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": ""
+                    }
+                },
+                {
+                    "type": "label",
+                    "id": "o_sub",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 0,
+                        "y": 96,
+                        "width": 368,
+                        "height": 36
+                    },
+                    "style": {
+                        "textColor": "#888888",
+                        "fontSize": 12,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": ""
+                    }
+                },
+                {
+                    "type": "label",
+                    "id": "o_score_l",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 0,
+                        "y": 140,
+                        "width": 368,
+                        "height": 18
+                    },
+                    "style": {
+                        "textColor": "#888888",
+                        "fontSize": 13,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": "SCORE"
+                    }
+                },
+                {
+                    "type": "label",
+                    "id": "o_score",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 0,
+                        "y": 158,
+                        "width": 368,
+                        "height": 52
+                    },
+                    "style": {
+                        "textColor": "#F96702",
+                        "fontSize": 44,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": "0"
+                    }
+                },
+                {
+                    "type": "label",
+                    "id": "o_stats",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 0,
+                        "y": 214,
+                        "width": 368,
+                        "height": 20
+                    },
+                    "style": {
+                        "textColor": "#f0f0f0",
+                        "fontSize": 14,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": ""
+                    }
+                },
+                {
+                    "type": "label",
+                    "id": "o_board_h",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 0,
+                        "y": 244,
+                        "width": 368,
+                        "height": 18
+                    },
+                    "style": {
+                        "textColor": "#888888",
+                        "fontSize": 12,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": "TOP OF THE BOARD"
+                    }
+                },
+                {
+                    "type": "label",
+                    "id": "o_b1",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 0,
+                        "y": 264,
+                        "width": 368,
+                        "height": 20
+                    },
+                    "style": {
+                        "textColor": "#FFD700",
+                        "fontSize": 15,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": ""
+                    }
+                },
+                {
+                    "type": "label",
+                    "id": "o_b2",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 0,
+                        "y": 286,
+                        "width": 368,
+                        "height": 20
+                    },
+                    "style": {
+                        "textColor": "#C0C0C0",
+                        "fontSize": 15,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": ""
+                    }
+                },
+                {
+                    "type": "label",
+                    "id": "o_b3",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 0,
+                        "y": 308,
+                        "width": 368,
+                        "height": 20
+                    },
+                    "style": {
+                        "textColor": "#CD7F32",
+                        "fontSize": 15,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": ""
+                    }
+                },
+                {
+                    "type": "container",
+                    "id": "o_again",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 84,
+                        "y": 340,
+                        "width": 200,
+                        "height": 54
+                    },
+                    "style": {
+                        "bgColor": "#F96702",
+                        "padding": 0,
+                        "radius": 10
+                    },
+                    "commonProps": {
+                        "scrollable": false,
+                        "clickable": true
+                    },
+                    "layout": {
+                        "type": "flex",
+                        "flexFlow": "row",
+                        "mainAlign": "center",
+                        "crossAlign": "center",
+                        "gap": 0
+                    },
+                    "children": [
+                        {
+                            "type": "label",
+                            "id": "o_again_t",
+                            "placement": {
+                                "mode": "absolute",
+                                "x": 0,
+                                "y": 0,
+                                "width": 200,
+                                "height": 28
+                            },
+                            "style": {
+                                "textColor": "#0f0f0f",
+                                "fontSize": 20,
+                                "textAlign": "center"
+                            },
+                            "labelProps": {
+                                "text": "RACE AGAIN"
+                            }
+                        }
+                    ],
+                    "events": [
+                        {
+                            "type": "clicked",
+                            "effects": [
+                                {
+                                    "type": "emitAction",
+                                    "action": "racing.again",
+                                    "requireValidPress": true
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "label",
+                    "id": "o_status",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 0,
+                        "y": 404,
+                        "width": 368,
+                        "height": 20
+                    },
+                    "style": {
+                        "textColor": "#888888",
+                        "fontSize": 13,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": ""
+                    }
+                }
+            ],
+            "bindings": {
+                "commonProps.hidden": "overHidden"
+            }
+        }
+    ]
+}
