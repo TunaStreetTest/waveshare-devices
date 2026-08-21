@@ -1,11 +1,16 @@
 {
     "type": "imageSet",
     "images": [
-        {
-            "id": "launcher_icon",
-            "src": "launcher_icon.png",
-            "width": 92,
-            "height": 92
-        }
+        { "id": "launcher_icon", "src": "launcher_icon.png", "width": 92, "height": 92 },
+        { "id": "obs_cone", "src": "obs_cone.png", "width": 44, "height": 44 },
+        { "id": "obs_barrier", "src": "obs_barrier.png", "width": 44, "height": 44 },
+        { "id": "obs_drum", "src": "obs_drum.png", "width": 44, "height": 44 },
+        { "id": "obs_rock", "src": "obs_rock.png", "width": 44, "height": 44 },
+        { "id": "obs_hazard", "src": "obs_hazard.png", "width": 44, "height": 44 },
+        { "id": "obs_databricks", "src": "obs_databricks.png", "width": 44, "height": 44 },
+        { "id": "obs_snowflake", "src": "obs_snowflake.png", "width": 44, "height": 44 },
+        { "id": "obs_iceberg", "src": "obs_iceberg.png", "width": 44, "height": 44 },
+        { "id": "car_corolla", "src": "car_corolla.png", "width": 56, "height": 74 },
+        { "id": "car_porsche", "src": "car_porsche.png", "width": 56, "height": 74 }
     ]
 }

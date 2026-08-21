@@ -1,8 +1,9 @@
 /*
  * RACING - ESP-Brookesia v0.8 JavaScript runtime app (issue #205).
  *
- * The Cloudera Racing game itself, playable on the 368x448 AMOLED: enter your
- * name, pick a car, dodge villains across three lanes. Same rules as the
+ * The Cloudera Racing game itself, playable on the 368x448 AMOLED: pick a car,
+ * dodge villains across three lanes. The driver is this device (DRIVER below) -
+ * no name entry, the panel knows who it is. Same rules as the
  * browser game (3 Datahero lives, speed level every 15s, Hero Mode at 2:00,
  * iceberg power-up past 3000) and the same telemetry - every heartbeat,
  * collision and game_over is POSTed through the LAN backend into the real
@@ -42,15 +43,18 @@
     var GREEN = "#22c55e";
     var MUTED = "#888888";
     var WHITE = "#f0f0f0";
-    var CAR_COLORS = { corolla: "#f2f2f2", porsche: "#c8c8cc" };
+    var DRIVER = "Tuna";
+    var CAR_IMG = { corolla: "car_corolla", porsche: "car_porsche" };
     var VILLAINS = [
-        { c: "#FF3621", t: "databricks" },
-        { c: "#29B5E8", t: "snowflake" },
-        { c: "#f5a623", t: "normal" },
-        { c: "#e5484d", t: "normal" },
-        { c: "#8a8f98", t: "normal" }
+        { img: "obs_databricks", t: "databricks" },
+        { img: "obs_snowflake", t: "snowflake" },
+        { img: "obs_cone", t: "normal" },
+        { img: "obs_barrier", t: "normal" },
+        { img: "obs_drum", t: "normal" },
+        { img: "obs_rock", t: "normal" },
+        { img: "obs_hazard", t: "normal" }
     ];
-    var ICEBERG_COLOR = "#e8f4f8";
+    var ICEBERG_IMG = "obs_iceberg";
 
     var ACH = [
         { s: 0, t: "Just Getting Started", d: "Every legend has a first lap." },
@@ -63,8 +67,8 @@
     ];
 
     // state
-    var phase = "name";
-    var username = "";
+    var phase = "car";
+    var username = DRIVER;
     var userId = "";
     var carType = "porsche";
     var lane = 1;
@@ -140,13 +144,15 @@
         guiCall("SetBindings", { Updates: updates });
     }
 
+    function setSrc(path, imageId) {
+        guiCall("SetViewSrc", { Path: SCREEN + path, Src: imageId });
+    }
+
     function showPhase(p) {
         phase = p;
-        bind("/panel_name", "nameHidden", p === "name" ? "false" : "true");
         bind("/panel_car", "carHidden", p === "car" ? "false" : "true");
         bind("/panel_game", "gameHidden", p === "game" ? "false" : "true");
         bind("/panel_over", "overHidden", p === "over" ? "false" : "true");
-        bind("/panel_name/n_kb", "kbHidden", p === "name" ? "false" : "true");
         flushBinds();
     }
 
@@ -287,8 +293,6 @@
 
     function placeCar() {
         bind("/panel_game/g_car", "carX", LANES[lane] - CAR_W / 2);
-        bind("/panel_game/g_car", "carColor", CAR_COLORS[carType]);
-        setText("/panel_game/g_car_t", carType === "corolla" ? "TOY" : "911");
     }
 
     function hideObs(i) {
@@ -300,14 +304,14 @@
         for (var i = 0; i < OBS; i++) {
             if (obs[i].alive) { continue; }
             var l = rnd(3);
-            var type, color;
+            var type, img;
             if (score >= ICEBERG_MIN && Math.random() < 0.18) {
                 type = "iceberg";
-                color = ICEBERG_COLOR;
+                img = ICEBERG_IMG;
             } else {
-                var pick = heroMode ? VILLAINS[rnd(2)] : VILLAINS[2 + rnd(3)];
+                var pick = heroMode ? VILLAINS[rnd(2)] : VILLAINS[2 + rnd(5)];
                 type = pick.t;
-                color = pick.c;
+                img = pick.img;
             }
             obs[i].alive = true;
             obs[i].lane = l;
@@ -315,7 +319,7 @@
             obs[i].type = type;
             bind("/panel_game/g_obs" + i, "obs" + i + "X", LANES[l] - OBS_SZ / 2);
             bind("/panel_game/g_obs" + i, "obs" + i + "Y", obs[i].y);
-            bind("/panel_game/g_obs" + i, "obs" + i + "C", color);
+            setSrc("/panel_game/g_obs" + i, img);
             bind("/panel_game/g_obs" + i, "obs" + i + "H", "false");
             return;
         }
@@ -394,6 +398,7 @@
     }
 
     function resetGame() {
+        setSrc("/panel_game/g_car", CAR_IMG[carType]);
         score = 0; collisions = 0; elapsed = 0;
         speedLevel = 1; baseKmh = 60; boostCd = BOOST_SEC;
         heroMode = false; lastKmh = 60; spawnT = 0; lane = 1;
@@ -407,27 +412,7 @@
         renderHud();
     }
 
-    function readName() {
-        var got = svcCall("SystemGui", "GetBinding", {
-            Path: SCREEN + "/panel_name/n_name", Key: "textInputProps.text"
-        });
-        var typed = "";
-        if (got && got.success && got.data !== undefined && got.data !== null) {
-            typed = String((got.data && got.data.Value !== undefined) ? got.data.Value : got.data);
-        }
-        return typed.replace(/^\s+|\s+$/g, "");
-    }
-
-    function toCarPage() {
-        username = readName() || "Driver";
-        if (!userId) { userId = uuid(); }
-        setText("/panel_car/c_greet", "READY, " + username.toUpperCase());
-        showPhase("car");
-        log("name entered:", username);
-    }
-
     function startGame() {
-        if (!username) { username = readName() || "Driver"; }
         if (!userId) { userId = uuid(); }
         resetGame();
         showPhase("game");
@@ -497,7 +482,7 @@
                     }
                 }
 
-                var actions = ["racing.to_car", "racing.go", "racing.left", "racing.right",
+                var actions = ["racing.go", "racing.left", "racing.right",
                                "racing.car_a", "racing.car_b", "racing.again"];
                 for (var j = 0; j < actions.length; j++) {
                     var sub = svcCall("SystemGui", "SubscribeAction", { Action: actions[j] });
@@ -512,7 +497,8 @@
                 if (t2.success) { secTimerId = t2.data; } else { log("second timer failed:", t2.error); }
 
                 selectCar("porsche");
-                showPhase("name");
+                setText("/panel_car/c_greet", "DRIVER: " + username.toUpperCase());
+                showPhase("car");
             } catch (e) {
                 log("on_start error:", String(e));
             }
@@ -521,9 +507,7 @@
 
         on_action: function (action) {
             try {
-                if (action === "racing.to_car") {
-                    toCarPage();
-                } else if (action === "racing.go") {
+                if (action === "racing.go") {
                     startGame();
                 } else if (action === "racing.left") {
                     steer(-1);

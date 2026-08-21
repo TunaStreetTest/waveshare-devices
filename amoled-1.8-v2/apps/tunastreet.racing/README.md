@@ -24,15 +24,25 @@ it — the device never parses the raw game JSON.
 Upstream failure is a `502` with a typed message — the panel renders it as
 "backend unreachable - retrying", never a crash.
 
-## Screen (368×448 portrait, one glanceable instrument)
+## Screens (368x448 portrait, panel-scale — nothing at desktop UI sizing)
 
-- Header **CLOUDERA RACING** ("RACING" orange) over a 3px orange underline — tap = force refresh (`racing.refresh`).
-- `PLAYING NOW: n` left, top live racer (`> name score`, green) right.
-- 8 fixed rows: rank (row 1–3 hardcoded gold/silver/bronze, rest muted), name, car (small, muted), score (orange, right).
-- Footer: `live · just now` / `live · Ns ago` (10s buckets) or the retry message.
+1. **CAR** — CLOUDERA / RACING wordmark, `DRIVER: TUNA` (the panel knows who it is;
+   no name entry), two 320x104 car slabs each showing the car's own sprite, and a
+   full-width **START RACING** button.
+2. **RACE** — HUD (driver, lives, 30px score, speed level, HERO MODE), three lanes,
+   sprite obstacles falling, your car sprite at the bottom. Tap the left or right
+   half of the road to change lanes.
+3. **RESULT** — achievement rank, 56px score, stats, live top-3, **RACE AGAIN**.
 
-No horizontal navigation — there is nothing to page. No gesture subscription at all, so
-the system swipe-up-home is untouched.
+Artwork is real sprites, not coloured blocks: 44x44 obstacles (traffic cone,
+barrier, drum, rock, hazard, Databricks chevrons, Snowflake bear, iceberg
+power-up) and 56x74 top-down cars, redrawn from the browser game's inline SVGs by
+`files/racing/gen_racing_art.py` in DesktopShare. Sprites are swapped at spawn
+time with `SystemGui.SetViewSrc`.
+
+**Layout trap:** a parent with `layout.type` flex/grid positions its children and
+ignores their absolute x/y — every container here declares `layout: {"type":
+"none"}`. Getting this wrong renders a near-blank screen.
 
 ## Timing / sandbox notes
 

@@ -15,254 +15,6 @@
     "children": [
         {
             "type": "container",
-            "id": "panel_name",
-            "placement": {
-                "mode": "absolute",
-                "x": 0,
-                "y": 0,
-                "width": 368,
-                "height": 448
-            },
-            "layout": {
-                "type": "none"
-            },
-            "style": {
-                "bgColor": "#000000",
-                "padding": 0,
-                "radius": 0
-            },
-            "commonProps": {
-                "scrollable": false,
-                "clickable": false
-            },
-            "children": [
-                {
-                    "type": "label",
-                    "id": "n_brand",
-                    "placement": {
-                        "mode": "absolute",
-                        "x": 0,
-                        "y": 14,
-                        "width": 368,
-                        "height": 34
-                    },
-                    "layout": {
-                        "type": "none"
-                    },
-                    "style": {
-                        "textColor": "#f0f0f0",
-                        "fontSize": 28,
-                        "textAlign": "center"
-                    },
-                    "labelProps": {
-                        "text": "CLOUDERA"
-                    }
-                },
-                {
-                    "type": "label",
-                    "id": "n_brand2",
-                    "placement": {
-                        "mode": "absolute",
-                        "x": 0,
-                        "y": 48,
-                        "width": 368,
-                        "height": 40
-                    },
-                    "layout": {
-                        "type": "none"
-                    },
-                    "style": {
-                        "textColor": "#F96702",
-                        "fontSize": 34,
-                        "textAlign": "center"
-                    },
-                    "labelProps": {
-                        "text": "RACING"
-                    }
-                },
-                {
-                    "type": "container",
-                    "id": "n_rule",
-                    "placement": {
-                        "mode": "absolute",
-                        "x": 34,
-                        "y": 92,
-                        "width": 300,
-                        "height": 4
-                    },
-                    "layout": {
-                        "type": "none"
-                    },
-                    "style": {
-                        "bgColor": "#F96702",
-                        "padding": 0,
-                        "radius": 0
-                    },
-                    "commonProps": {
-                        "scrollable": false,
-                        "clickable": false
-                    },
-                    "children": []
-                },
-                {
-                    "type": "label",
-                    "id": "n_prompt",
-                    "placement": {
-                        "mode": "absolute",
-                        "x": 0,
-                        "y": 108,
-                        "width": 368,
-                        "height": 26
-                    },
-                    "layout": {
-                        "type": "none"
-                    },
-                    "style": {
-                        "textColor": "#888888",
-                        "fontSize": 20,
-                        "textAlign": "center"
-                    },
-                    "labelProps": {
-                        "text": "ENTER YOUR NAME"
-                    }
-                },
-                {
-                    "type": "textInput",
-                    "id": "n_name",
-                    "placement": {
-                        "mode": "absolute",
-                        "x": 24,
-                        "y": 140,
-                        "width": 320,
-                        "height": 72
-                    },
-                    "layout": {
-                        "type": "none"
-                    },
-                    "style": {
-                        "textColor": "#f0f0f0",
-                        "fontSize": 34,
-                        "textAlign": "center",
-                        "bgColor": "#1a1a1a",
-                        "radius": 12
-                    },
-                    "commonProps": {
-                        "clickable": true
-                    },
-                    "textInputProps": {
-                        "text": "",
-                        "placeholder": "Driver",
-                        "maxLength": 12
-                    }
-                },
-                {
-                    "type": "container",
-                    "id": "n_start",
-                    "placement": {
-                        "mode": "absolute",
-                        "x": 24,
-                        "y": 224,
-                        "width": 320,
-                        "height": 76
-                    },
-                    "layout": {
-                        "type": "none"
-                    },
-                    "style": {
-                        "bgColor": "#F96702",
-                        "padding": 0,
-                        "radius": 12
-                    },
-                    "commonProps": {
-                        "scrollable": false,
-                        "clickable": true
-                    },
-                    "children": [
-                        {
-                            "type": "label",
-                            "id": "n_start_t",
-                            "placement": {
-                                "mode": "absolute",
-                                "x": 0,
-                                "y": 20,
-                                "width": 320,
-                                "height": 36
-                            },
-                            "layout": {
-                                "type": "none"
-                            },
-                            "style": {
-                                "textColor": "#0f0f0f",
-                                "fontSize": 28,
-                                "textAlign": "center"
-                            },
-                            "labelProps": {
-                                "text": "START RACING"
-                            }
-                        }
-                    ],
-                    "events": [
-                        {
-                            "type": "clicked",
-                            "effects": [
-                                {
-                                    "type": "emitAction",
-                                    "action": "racing.to_car",
-                                    "requireValidPress": true
-                                }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    "type": "label",
-                    "id": "n_hint",
-                    "placement": {
-                        "mode": "absolute",
-                        "x": 0,
-                        "y": 310,
-                        "width": 368,
-                        "height": 24
-                    },
-                    "layout": {
-                        "type": "none"
-                    },
-                    "style": {
-                        "textColor": "#888888",
-                        "fontSize": 16,
-                        "textAlign": "center"
-                    },
-                    "labelProps": {
-                        "text": "tap the box to type"
-                    }
-                },
-                {
-                    "type": "keyboard",
-                    "id": "n_kb",
-                    "placement": {
-                        "mode": "absolute",
-                        "x": 0,
-                        "y": 336,
-                        "width": 368,
-                        "height": 112
-                    },
-                    "layout": {
-                        "type": "none"
-                    },
-                    "keyboardProps": {
-                        "target": "n_name"
-                    },
-                    "bindings": {
-                        "commonProps.hidden": "kbHidden"
-                    }
-                }
-            ],
-            "bindings": {
-                "commonProps.hidden": "nameHidden"
-            }
-        },
-        {
-            "type": "container",
             "id": "panel_car",
             "placement": {
                 "mode": "absolute",
@@ -286,11 +38,11 @@
             "children": [
                 {
                     "type": "label",
-                    "id": "c_greet",
+                    "id": "c_brand",
                     "placement": {
                         "mode": "absolute",
                         "x": 0,
-                        "y": 18,
+                        "y": 10,
                         "width": 368,
                         "height": 34
                     },
@@ -303,7 +55,29 @@
                         "textAlign": "center"
                     },
                     "labelProps": {
-                        "text": ""
+                        "text": "CLOUDERA"
+                    }
+                },
+                {
+                    "type": "label",
+                    "id": "c_brand2",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 0,
+                        "y": 42,
+                        "width": 368,
+                        "height": 40
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "style": {
+                        "textColor": "#F96702",
+                        "fontSize": 34,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": "RACING"
                     }
                 },
                 {
@@ -312,7 +86,7 @@
                     "placement": {
                         "mode": "absolute",
                         "x": 34,
-                        "y": 58,
+                        "y": 86,
                         "width": 300,
                         "height": 4
                     },
@@ -332,11 +106,33 @@
                 },
                 {
                     "type": "label",
+                    "id": "c_greet",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 0,
+                        "y": 98,
+                        "width": 368,
+                        "height": 30
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "style": {
+                        "textColor": "#22c55e",
+                        "fontSize": 22,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": ""
+                    }
+                },
+                {
+                    "type": "label",
                     "id": "c_prompt",
                     "placement": {
                         "mode": "absolute",
                         "x": 0,
-                        "y": 74,
+                        "y": 130,
                         "width": 368,
                         "height": 26
                     },
@@ -358,9 +154,9 @@
                     "placement": {
                         "mode": "absolute",
                         "x": 24,
-                        "y": 108,
+                        "y": 160,
                         "width": 320,
-                        "height": 96
+                        "height": 104
                     },
                     "layout": {
                         "type": "none"
@@ -376,22 +172,40 @@
                     },
                     "children": [
                         {
+                            "type": "image",
+                            "id": "c_a_img",
+                            "placement": {
+                                "mode": "absolute",
+                                "x": 14,
+                                "y": 15,
+                                "width": 56,
+                                "height": 74
+                            },
+                            "layout": {
+                                "type": "none"
+                            },
+                            "imageProps": {
+                                "src": "${image.car_corolla}",
+                                "innerAlign": "contain"
+                            }
+                        },
+                        {
                             "type": "label",
                             "id": "c_a_t",
                             "placement": {
                                 "mode": "absolute",
-                                "x": 0,
-                                "y": 14,
-                                "width": 320,
-                                "height": 36
+                                "x": 84,
+                                "y": 24,
+                                "width": 226,
+                                "height": 34
                             },
                             "layout": {
                                 "type": "none"
                             },
                             "style": {
                                 "textColor": "#f0f0f0",
-                                "fontSize": 30,
-                                "textAlign": "center"
+                                "fontSize": 26,
+                                "textAlign": "left"
                             },
                             "labelProps": {
                                 "text": "Toyota Corolla S"
@@ -402,9 +216,9 @@
                             "id": "c_a_s",
                             "placement": {
                                 "mode": "absolute",
-                                "x": 0,
-                                "y": 54,
-                                "width": 320,
+                                "x": 84,
+                                "y": 58,
+                                "width": 226,
                                 "height": 26
                             },
                             "layout": {
@@ -413,7 +227,7 @@
                             "style": {
                                 "textColor": "#888888",
                                 "fontSize": 18,
-                                "textAlign": "center"
+                                "textAlign": "left"
                             },
                             "labelProps": {
                                 "text": "reliable \u00b7 steady"
@@ -442,9 +256,9 @@
                     "placement": {
                         "mode": "absolute",
                         "x": 24,
-                        "y": 216,
+                        "y": 274,
                         "width": 320,
-                        "height": 96
+                        "height": 104
                     },
                     "layout": {
                         "type": "none"
@@ -460,22 +274,40 @@
                     },
                     "children": [
                         {
+                            "type": "image",
+                            "id": "c_b_img",
+                            "placement": {
+                                "mode": "absolute",
+                                "x": 14,
+                                "y": 15,
+                                "width": 56,
+                                "height": 74
+                            },
+                            "layout": {
+                                "type": "none"
+                            },
+                            "imageProps": {
+                                "src": "${image.car_porsche}",
+                                "innerAlign": "contain"
+                            }
+                        },
+                        {
                             "type": "label",
                             "id": "c_b_t",
                             "placement": {
                                 "mode": "absolute",
-                                "x": 0,
-                                "y": 14,
-                                "width": 320,
-                                "height": 36
+                                "x": 84,
+                                "y": 24,
+                                "width": 226,
+                                "height": 34
                             },
                             "layout": {
                                 "type": "none"
                             },
                             "style": {
                                 "textColor": "#f0f0f0",
-                                "fontSize": 30,
-                                "textAlign": "center"
+                                "fontSize": 26,
+                                "textAlign": "left"
                             },
                             "labelProps": {
                                 "text": "Porsche 911"
@@ -486,9 +318,9 @@
                             "id": "c_b_s",
                             "placement": {
                                 "mode": "absolute",
-                                "x": 0,
-                                "y": 54,
-                                "width": 320,
+                                "x": 84,
+                                "y": 58,
+                                "width": 226,
                                 "height": 26
                             },
                             "layout": {
@@ -497,7 +329,7 @@
                             "style": {
                                 "textColor": "#888888",
                                 "fontSize": 18,
-                                "textAlign": "center"
+                                "textAlign": "left"
                             },
                             "labelProps": {
                                 "text": "speed \u00b7 sharp"
@@ -526,9 +358,9 @@
                     "placement": {
                         "mode": "absolute",
                         "x": 24,
-                        "y": 330,
+                        "y": 388,
                         "width": 320,
-                        "height": 84
+                        "height": 50
                     },
                     "layout": {
                         "type": "none"
@@ -549,20 +381,20 @@
                             "placement": {
                                 "mode": "absolute",
                                 "x": 0,
-                                "y": 18,
+                                "y": 8,
                                 "width": 320,
-                                "height": 48
+                                "height": 34
                             },
                             "layout": {
                                 "type": "none"
                             },
                             "style": {
                                 "textColor": "#0f0f0f",
-                                "fontSize": 40,
+                                "fontSize": 26,
                                 "textAlign": "center"
                             },
                             "labelProps": {
-                                "text": "GO!"
+                                "text": "START RACING"
                             }
                         }
                     ],
@@ -578,28 +410,6 @@
                             ]
                         }
                     ]
-                },
-                {
-                    "type": "label",
-                    "id": "c_hint",
-                    "placement": {
-                        "mode": "absolute",
-                        "x": 0,
-                        "y": 420,
-                        "width": 368,
-                        "height": 24
-                    },
-                    "layout": {
-                        "type": "none"
-                    },
-                    "style": {
-                        "textColor": "#888888",
-                        "fontSize": 16,
-                        "textAlign": "center"
-                    },
-                    "labelProps": {
-                        "text": "tap left / right to steer"
-                    }
                 }
             ],
             "bindings": {
@@ -884,7 +694,7 @@
                     "children": []
                 },
                 {
-                    "type": "container",
+                    "type": "image",
                     "id": "g_obs0",
                     "placement": {
                         "mode": "absolute",
@@ -896,25 +706,21 @@
                     "layout": {
                         "type": "none"
                     },
-                    "style": {
-                        "bgColor": "#f5a623",
-                        "padding": 0,
-                        "radius": 8
-                    },
                     "commonProps": {
-                        "scrollable": false,
                         "clickable": false
                     },
-                    "children": [],
+                    "imageProps": {
+                        "src": "${image.obs_cone}",
+                        "innerAlign": "contain"
+                    },
                     "bindings": {
                         "placement.x": "obs0X",
                         "placement.y": "obs0Y",
-                        "style.bgColor": "obs0C",
                         "commonProps.hidden": "obs0H"
                     }
                 },
                 {
-                    "type": "container",
+                    "type": "image",
                     "id": "g_obs1",
                     "placement": {
                         "mode": "absolute",
@@ -926,25 +732,21 @@
                     "layout": {
                         "type": "none"
                     },
-                    "style": {
-                        "bgColor": "#f5a623",
-                        "padding": 0,
-                        "radius": 8
-                    },
                     "commonProps": {
-                        "scrollable": false,
                         "clickable": false
                     },
-                    "children": [],
+                    "imageProps": {
+                        "src": "${image.obs_cone}",
+                        "innerAlign": "contain"
+                    },
                     "bindings": {
                         "placement.x": "obs1X",
                         "placement.y": "obs1Y",
-                        "style.bgColor": "obs1C",
                         "commonProps.hidden": "obs1H"
                     }
                 },
                 {
-                    "type": "container",
+                    "type": "image",
                     "id": "g_obs2",
                     "placement": {
                         "mode": "absolute",
@@ -956,25 +758,21 @@
                     "layout": {
                         "type": "none"
                     },
-                    "style": {
-                        "bgColor": "#f5a623",
-                        "padding": 0,
-                        "radius": 8
-                    },
                     "commonProps": {
-                        "scrollable": false,
                         "clickable": false
                     },
-                    "children": [],
+                    "imageProps": {
+                        "src": "${image.obs_cone}",
+                        "innerAlign": "contain"
+                    },
                     "bindings": {
                         "placement.x": "obs2X",
                         "placement.y": "obs2Y",
-                        "style.bgColor": "obs2C",
                         "commonProps.hidden": "obs2H"
                     }
                 },
                 {
-                    "type": "container",
+                    "type": "image",
                     "id": "g_obs3",
                     "placement": {
                         "mode": "absolute",
@@ -986,25 +784,21 @@
                     "layout": {
                         "type": "none"
                     },
-                    "style": {
-                        "bgColor": "#f5a623",
-                        "padding": 0,
-                        "radius": 8
-                    },
                     "commonProps": {
-                        "scrollable": false,
                         "clickable": false
                     },
-                    "children": [],
+                    "imageProps": {
+                        "src": "${image.obs_cone}",
+                        "innerAlign": "contain"
+                    },
                     "bindings": {
                         "placement.x": "obs3X",
                         "placement.y": "obs3Y",
-                        "style.bgColor": "obs3C",
                         "commonProps.hidden": "obs3H"
                     }
                 },
                 {
-                    "type": "container",
+                    "type": "image",
                     "id": "g_obs4",
                     "placement": {
                         "mode": "absolute",
@@ -1016,25 +810,21 @@
                     "layout": {
                         "type": "none"
                     },
-                    "style": {
-                        "bgColor": "#f5a623",
-                        "padding": 0,
-                        "radius": 8
-                    },
                     "commonProps": {
-                        "scrollable": false,
                         "clickable": false
                     },
-                    "children": [],
+                    "imageProps": {
+                        "src": "${image.obs_cone}",
+                        "innerAlign": "contain"
+                    },
                     "bindings": {
                         "placement.x": "obs4X",
                         "placement.y": "obs4Y",
-                        "style.bgColor": "obs4C",
                         "commonProps.hidden": "obs4H"
                     }
                 },
                 {
-                    "type": "container",
+                    "type": "image",
                     "id": "g_obs5",
                     "placement": {
                         "mode": "absolute",
@@ -1046,25 +836,21 @@
                     "layout": {
                         "type": "none"
                     },
-                    "style": {
-                        "bgColor": "#f5a623",
-                        "padding": 0,
-                        "radius": 8
-                    },
                     "commonProps": {
-                        "scrollable": false,
                         "clickable": false
                     },
-                    "children": [],
+                    "imageProps": {
+                        "src": "${image.obs_cone}",
+                        "innerAlign": "contain"
+                    },
                     "bindings": {
                         "placement.x": "obs5X",
                         "placement.y": "obs5Y",
-                        "style.bgColor": "obs5C",
                         "commonProps.hidden": "obs5H"
                     }
                 },
                 {
-                    "type": "container",
+                    "type": "image",
                     "id": "g_car",
                     "placement": {
                         "mode": "absolute",
@@ -1076,42 +862,15 @@
                     "layout": {
                         "type": "none"
                     },
-                    "style": {
-                        "bgColor": "#e8e8ee",
-                        "padding": 0,
-                        "radius": 10
-                    },
                     "commonProps": {
-                        "scrollable": false,
                         "clickable": false
                     },
-                    "children": [
-                        {
-                            "type": "label",
-                            "id": "g_car_t",
-                            "placement": {
-                                "mode": "absolute",
-                                "x": 0,
-                                "y": 24,
-                                "width": 56,
-                                "height": 26
-                            },
-                            "layout": {
-                                "type": "none"
-                            },
-                            "style": {
-                                "textColor": "#111111",
-                                "fontSize": 18,
-                                "textAlign": "center"
-                            },
-                            "labelProps": {
-                                "text": ""
-                            }
-                        }
-                    ],
+                    "imageProps": {
+                        "src": "${image.car_porsche}",
+                        "innerAlign": "contain"
+                    },
                     "bindings": {
-                        "placement.x": "carX",
-                        "style.bgColor": "carColor"
+                        "placement.x": "carX"
                     }
                 },
                 {
