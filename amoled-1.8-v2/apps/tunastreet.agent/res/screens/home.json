@@ -1,0 +1,960 @@
+{
+    "type": "viewScreen",
+    "id": "home",
+    "style": {
+        "bgColor": "#000000",
+        "padding": 0
+    },
+    "layout": {
+        "type": "none"
+    },
+    "commonProps": {
+        "scrollable": false,
+        "pressLock": true,
+        "clickable": true
+    },
+    "children": [
+        {
+            "type": "container",
+            "id": "tapzone",
+            "placement": {
+                "mode": "absolute",
+                "x": 0,
+                "y": 0,
+                "width": 368,
+                "height": 448
+            },
+            "layout": {
+                "type": "none"
+            },
+            "style": {
+                "bgColor": "#000000",
+                "padding": 0,
+                "radius": 0
+            },
+            "commonProps": {
+                "scrollable": false,
+                "pressLock": true,
+                "clickable": true
+            },
+            "children": [],
+            "events": [
+                {
+                    "type": "pressed",
+                    "effects": [
+                        {
+                            "type": "emitAction",
+                            "action": "agent.refresh"
+                        }
+                    ]
+                },
+                {
+                    "type": "released",
+                    "effects": [
+                        {
+                            "type": "emitAction",
+                            "action": "agent.refresh"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "container",
+            "id": "head",
+            "placement": {
+                "mode": "absolute",
+                "x": 0,
+                "y": 0,
+                "width": 368,
+                "height": 46
+            },
+            "layout": {
+                "type": "none"
+            },
+            "style": {
+                "bgColor": "#000000",
+                "padding": 0,
+                "radius": 0
+            },
+            "commonProps": {
+                "scrollable": false,
+                "pressLock": true,
+                "clickable": false
+            },
+            "children": [
+                {
+                    "type": "label",
+                    "id": "head_t",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 16,
+                        "y": 10,
+                        "width": 210,
+                        "height": 28
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "style": {
+                        "textColor": "#F96702",
+                        "fontSize": 22,
+                        "textAlign": "left"
+                    },
+                    "labelProps": {
+                        "text": "MICROFI AGENT"
+                    }
+                },
+                {
+                    "type": "label",
+                    "id": "head_state",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 226,
+                        "y": 12,
+                        "width": 126,
+                        "height": 24
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "style": {
+                        "textColor": "#888888",
+                        "fontSize": 18,
+                        "textAlign": "right"
+                    },
+                    "labelProps": {
+                        "text": "..."
+                    },
+                    "bindings": {
+                        "style.textColor": "stateColor"
+                    }
+                }
+            ]
+        },
+        {
+            "type": "container",
+            "id": "hb",
+            "placement": {
+                "mode": "absolute",
+                "x": 0,
+                "y": 54,
+                "width": 368,
+                "height": 34
+            },
+            "layout": {
+                "type": "none"
+            },
+            "style": {
+                "bgColor": "#000000",
+                "padding": 0,
+                "radius": 0
+            },
+            "commonProps": {
+                "scrollable": false,
+                "pressLock": true,
+                "clickable": false
+            },
+            "children": [
+                {
+                    "type": "container",
+                    "id": "hb0",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 7,
+                        "y": 0,
+                        "width": 24,
+                        "height": 34
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "style": {
+                        "bgColor": "#1a1a1a",
+                        "padding": 0,
+                        "radius": 4
+                    },
+                    "commonProps": {
+                        "scrollable": false,
+                        "pressLock": true,
+                        "clickable": false
+                    },
+                    "children": [],
+                    "bindings": {
+                        "style.bgColor": "hb0Bg"
+                    }
+                },
+                {
+                    "type": "container",
+                    "id": "hb1",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 37,
+                        "y": 0,
+                        "width": 24,
+                        "height": 34
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "style": {
+                        "bgColor": "#1a1a1a",
+                        "padding": 0,
+                        "radius": 4
+                    },
+                    "commonProps": {
+                        "scrollable": false,
+                        "pressLock": true,
+                        "clickable": false
+                    },
+                    "children": [],
+                    "bindings": {
+                        "style.bgColor": "hb1Bg"
+                    }
+                },
+                {
+                    "type": "container",
+                    "id": "hb2",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 67,
+                        "y": 0,
+                        "width": 24,
+                        "height": 34
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "style": {
+                        "bgColor": "#1a1a1a",
+                        "padding": 0,
+                        "radius": 4
+                    },
+                    "commonProps": {
+                        "scrollable": false,
+                        "pressLock": true,
+                        "clickable": false
+                    },
+                    "children": [],
+                    "bindings": {
+                        "style.bgColor": "hb2Bg"
+                    }
+                },
+                {
+                    "type": "container",
+                    "id": "hb3",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 97,
+                        "y": 0,
+                        "width": 24,
+                        "height": 34
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "style": {
+                        "bgColor": "#1a1a1a",
+                        "padding": 0,
+                        "radius": 4
+                    },
+                    "commonProps": {
+                        "scrollable": false,
+                        "pressLock": true,
+                        "clickable": false
+                    },
+                    "children": [],
+                    "bindings": {
+                        "style.bgColor": "hb3Bg"
+                    }
+                },
+                {
+                    "type": "container",
+                    "id": "hb4",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 127,
+                        "y": 0,
+                        "width": 24,
+                        "height": 34
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "style": {
+                        "bgColor": "#1a1a1a",
+                        "padding": 0,
+                        "radius": 4
+                    },
+                    "commonProps": {
+                        "scrollable": false,
+                        "pressLock": true,
+                        "clickable": false
+                    },
+                    "children": [],
+                    "bindings": {
+                        "style.bgColor": "hb4Bg"
+                    }
+                },
+                {
+                    "type": "container",
+                    "id": "hb5",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 157,
+                        "y": 0,
+                        "width": 24,
+                        "height": 34
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "style": {
+                        "bgColor": "#1a1a1a",
+                        "padding": 0,
+                        "radius": 4
+                    },
+                    "commonProps": {
+                        "scrollable": false,
+                        "pressLock": true,
+                        "clickable": false
+                    },
+                    "children": [],
+                    "bindings": {
+                        "style.bgColor": "hb5Bg"
+                    }
+                },
+                {
+                    "type": "container",
+                    "id": "hb6",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 187,
+                        "y": 0,
+                        "width": 24,
+                        "height": 34
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "style": {
+                        "bgColor": "#1a1a1a",
+                        "padding": 0,
+                        "radius": 4
+                    },
+                    "commonProps": {
+                        "scrollable": false,
+                        "pressLock": true,
+                        "clickable": false
+                    },
+                    "children": [],
+                    "bindings": {
+                        "style.bgColor": "hb6Bg"
+                    }
+                },
+                {
+                    "type": "container",
+                    "id": "hb7",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 217,
+                        "y": 0,
+                        "width": 24,
+                        "height": 34
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "style": {
+                        "bgColor": "#1a1a1a",
+                        "padding": 0,
+                        "radius": 4
+                    },
+                    "commonProps": {
+                        "scrollable": false,
+                        "pressLock": true,
+                        "clickable": false
+                    },
+                    "children": [],
+                    "bindings": {
+                        "style.bgColor": "hb7Bg"
+                    }
+                },
+                {
+                    "type": "container",
+                    "id": "hb8",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 247,
+                        "y": 0,
+                        "width": 24,
+                        "height": 34
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "style": {
+                        "bgColor": "#1a1a1a",
+                        "padding": 0,
+                        "radius": 4
+                    },
+                    "commonProps": {
+                        "scrollable": false,
+                        "pressLock": true,
+                        "clickable": false
+                    },
+                    "children": [],
+                    "bindings": {
+                        "style.bgColor": "hb8Bg"
+                    }
+                },
+                {
+                    "type": "container",
+                    "id": "hb9",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 277,
+                        "y": 0,
+                        "width": 24,
+                        "height": 34
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "style": {
+                        "bgColor": "#1a1a1a",
+                        "padding": 0,
+                        "radius": 4
+                    },
+                    "commonProps": {
+                        "scrollable": false,
+                        "pressLock": true,
+                        "clickable": false
+                    },
+                    "children": [],
+                    "bindings": {
+                        "style.bgColor": "hb9Bg"
+                    }
+                },
+                {
+                    "type": "container",
+                    "id": "hb10",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 307,
+                        "y": 0,
+                        "width": 24,
+                        "height": 34
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "style": {
+                        "bgColor": "#1a1a1a",
+                        "padding": 0,
+                        "radius": 4
+                    },
+                    "commonProps": {
+                        "scrollable": false,
+                        "pressLock": true,
+                        "clickable": false
+                    },
+                    "children": [],
+                    "bindings": {
+                        "style.bgColor": "hb10Bg"
+                    }
+                },
+                {
+                    "type": "container",
+                    "id": "hb11",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 337,
+                        "y": 0,
+                        "width": 24,
+                        "height": 34
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "style": {
+                        "bgColor": "#1a1a1a",
+                        "padding": 0,
+                        "radius": 4
+                    },
+                    "commonProps": {
+                        "scrollable": false,
+                        "pressLock": true,
+                        "clickable": false
+                    },
+                    "children": [],
+                    "bindings": {
+                        "style.bgColor": "hb11Bg"
+                    }
+                }
+            ]
+        },
+        {
+            "type": "container",
+            "id": "beat",
+            "placement": {
+                "mode": "absolute",
+                "x": 0,
+                "y": 96,
+                "width": 368,
+                "height": 92
+            },
+            "layout": {
+                "type": "none"
+            },
+            "style": {
+                "bgColor": "#000000",
+                "padding": 0,
+                "radius": 0
+            },
+            "commonProps": {
+                "scrollable": false,
+                "pressLock": true,
+                "clickable": false
+            },
+            "children": [
+                {
+                    "type": "label",
+                    "id": "beat_v",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 0,
+                        "y": 0,
+                        "width": 368,
+                        "height": 62
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "style": {
+                        "textColor": "#888888",
+                        "fontSize": 56,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": "--"
+                    },
+                    "bindings": {
+                        "style.textColor": "beatColor"
+                    }
+                },
+                {
+                    "type": "label",
+                    "id": "beat_cap",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 0,
+                        "y": 66,
+                        "width": 368,
+                        "height": 20
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "style": {
+                        "textColor": "#888888",
+                        "fontSize": 15,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": "SINCE LAST HEARTBEAT"
+                    }
+                }
+            ]
+        },
+        {
+            "type": "container",
+            "id": "proc",
+            "placement": {
+                "mode": "absolute",
+                "x": 0,
+                "y": 196,
+                "width": 368,
+                "height": 118
+            },
+            "layout": {
+                "type": "none"
+            },
+            "style": {
+                "bgColor": "#000000",
+                "padding": 0,
+                "radius": 0
+            },
+            "commonProps": {
+                "scrollable": false,
+                "pressLock": true,
+                "clickable": false
+            },
+            "children": [
+                {
+                    "type": "label",
+                    "id": "proc_v",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 0,
+                        "y": 0,
+                        "width": 368,
+                        "height": 54
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "style": {
+                        "textColor": "#F96702",
+                        "fontSize": 48,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": "--"
+                    },
+                    "bindings": {
+                        "style.textColor": "procColor"
+                    }
+                },
+                {
+                    "type": "label",
+                    "id": "proc_cap",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 0,
+                        "y": 56,
+                        "width": 368,
+                        "height": 20
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "style": {
+                        "textColor": "#888888",
+                        "fontSize": 15,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": "PROCESSORS RUNNING"
+                    }
+                },
+                {
+                    "type": "label",
+                    "id": "proc_list",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 8,
+                        "y": 78,
+                        "width": 352,
+                        "height": 22
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "style": {
+                        "textColor": "#f0f0f0",
+                        "fontSize": 18,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": ""
+                    }
+                },
+                {
+                    "type": "label",
+                    "id": "proc_cat",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 8,
+                        "y": 100,
+                        "width": 352,
+                        "height": 18
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "style": {
+                        "textColor": "#888888",
+                        "fontSize": 15,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": ""
+                    }
+                }
+            ]
+        },
+        {
+            "type": "container",
+            "id": "mx",
+            "placement": {
+                "mode": "absolute",
+                "x": 0,
+                "y": 322,
+                "width": 368,
+                "height": 66
+            },
+            "layout": {
+                "type": "none"
+            },
+            "style": {
+                "bgColor": "#000000",
+                "padding": 0,
+                "radius": 0
+            },
+            "commonProps": {
+                "scrollable": false,
+                "pressLock": true,
+                "clickable": false
+            },
+            "children": [
+                {
+                    "type": "label",
+                    "id": "mx_uptime_v",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 0,
+                        "y": 4,
+                        "width": 92,
+                        "height": 36
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "style": {
+                        "textColor": "#f0f0f0",
+                        "fontSize": 28,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": "--"
+                    }
+                },
+                {
+                    "type": "label",
+                    "id": "mx_uptime_c",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 0,
+                        "y": 42,
+                        "width": 92,
+                        "height": 20
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "style": {
+                        "textColor": "#888888",
+                        "fontSize": 15,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": "UPTIME"
+                    }
+                },
+                {
+                    "type": "label",
+                    "id": "mx_mem_v",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 92,
+                        "y": 4,
+                        "width": 92,
+                        "height": 36
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "style": {
+                        "textColor": "#f0f0f0",
+                        "fontSize": 28,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": "--"
+                    }
+                },
+                {
+                    "type": "label",
+                    "id": "mx_mem_c",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 92,
+                        "y": 42,
+                        "width": 92,
+                        "height": 20
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "style": {
+                        "textColor": "#888888",
+                        "fontSize": 15,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": "MEM MB"
+                    }
+                },
+                {
+                    "type": "label",
+                    "id": "mx_cpu_v",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 184,
+                        "y": 4,
+                        "width": 92,
+                        "height": 36
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "style": {
+                        "textColor": "#f0f0f0",
+                        "fontSize": 28,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": "--"
+                    }
+                },
+                {
+                    "type": "label",
+                    "id": "mx_cpu_c",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 184,
+                        "y": 42,
+                        "width": 92,
+                        "height": 20
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "style": {
+                        "textColor": "#888888",
+                        "fontSize": 15,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": "CPU %"
+                    }
+                },
+                {
+                    "type": "label",
+                    "id": "mx_queue_v",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 276,
+                        "y": 4,
+                        "width": 92,
+                        "height": 36
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "style": {
+                        "textColor": "#f0f0f0",
+                        "fontSize": 28,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": "--"
+                    }
+                },
+                {
+                    "type": "label",
+                    "id": "mx_queue_c",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 276,
+                        "y": 42,
+                        "width": 92,
+                        "height": 20
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "style": {
+                        "textColor": "#888888",
+                        "fontSize": 15,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": "QUEUE"
+                    }
+                }
+            ]
+        },
+        {
+            "type": "container",
+            "id": "foot",
+            "placement": {
+                "mode": "absolute",
+                "x": 0,
+                "y": 396,
+                "width": 368,
+                "height": 52
+            },
+            "layout": {
+                "type": "none"
+            },
+            "style": {
+                "bgColor": "#000000",
+                "padding": 0,
+                "radius": 0
+            },
+            "commonProps": {
+                "scrollable": false,
+                "pressLock": true,
+                "clickable": false
+            },
+            "children": [
+                {
+                    "type": "label",
+                    "id": "foot_age",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 8,
+                        "y": 0,
+                        "width": 352,
+                        "height": 20
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "style": {
+                        "textColor": "#888888",
+                        "fontSize": 15,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": "connecting..."
+                    }
+                },
+                {
+                    "type": "label",
+                    "id": "foot_id",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 8,
+                        "y": 24,
+                        "width": 352,
+                        "height": 20
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "style": {
+                        "textColor": "#888888",
+                        "fontSize": 15,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": ""
+                    }
+                }
+            ]
+        }
+    ]
+}
