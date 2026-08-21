@@ -502,16 +502,16 @@
                     "placement": {
                         "mode": "absolute",
                         "x": 8,
-                        "y": 6,
-                        "width": 150,
-                        "height": 28
+                        "y": 4,
+                        "width": 120,
+                        "height": 26
                     },
                     "layout": {
                         "type": "none"
                     },
                     "style": {
                         "textColor": "#f0f0f0",
-                        "fontSize": 20,
+                        "fontSize": 19,
                         "textAlign": "left"
                     },
                     "labelProps": {
@@ -523,10 +523,10 @@
                     "id": "g_lives",
                     "placement": {
                         "mode": "absolute",
-                        "x": 158,
-                        "y": 6,
-                        "width": 90,
-                        "height": 28
+                        "x": 130,
+                        "y": 4,
+                        "width": 76,
+                        "height": 26
                     },
                     "layout": {
                         "type": "none"
@@ -538,6 +538,31 @@
                     },
                     "labelProps": {
                         "text": "***"
+                    },
+                    "bindings": {
+                        "style.textColor": "livesColor"
+                    }
+                },
+                {
+                    "type": "label",
+                    "id": "g_clock",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 206,
+                        "y": 4,
+                        "width": 60,
+                        "height": 26
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "style": {
+                        "textColor": "#888888",
+                        "fontSize": 19,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": "0:00"
                     }
                 },
                 {
@@ -545,17 +570,17 @@
                     "id": "g_score",
                     "placement": {
                         "mode": "absolute",
-                        "x": 250,
-                        "y": 2,
-                        "width": 112,
-                        "height": 36
+                        "x": 266,
+                        "y": 0,
+                        "width": 96,
+                        "height": 34
                     },
                     "layout": {
                         "type": "none"
                     },
                     "style": {
                         "textColor": "#F96702",
-                        "fontSize": 30,
+                        "fontSize": 28,
                         "textAlign": "right"
                     },
                     "labelProps": {
@@ -1121,9 +1146,9 @@
                     "placement": {
                         "mode": "absolute",
                         "x": 0,
-                        "y": 60,
+                        "y": 58,
                         "width": 368,
-                        "height": 34
+                        "height": 32
                     },
                     "layout": {
                         "type": "none"
@@ -1139,20 +1164,42 @@
                 },
                 {
                     "type": "label",
+                    "id": "o_sub",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 0,
+                        "y": 90,
+                        "width": 368,
+                        "height": 24
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "style": {
+                        "textColor": "#888888",
+                        "fontSize": 15,
+                        "textAlign": "center"
+                    },
+                    "labelProps": {
+                        "text": ""
+                    }
+                },
+                {
+                    "type": "label",
                     "id": "o_score",
                     "placement": {
                         "mode": "absolute",
                         "x": 0,
-                        "y": 96,
+                        "y": 114,
                         "width": 368,
-                        "height": 68
+                        "height": 62
                     },
                     "layout": {
                         "type": "none"
                     },
                     "style": {
                         "textColor": "#F96702",
-                        "fontSize": 56,
+                        "fontSize": 52,
                         "textAlign": "center"
                     },
                     "labelProps": {
@@ -1165,9 +1212,9 @@
                     "placement": {
                         "mode": "absolute",
                         "x": 0,
-                        "y": 166,
+                        "y": 178,
                         "width": 368,
-                        "height": 28
+                        "height": 26
                     },
                     "layout": {
                         "type": "none"
@@ -1187,16 +1234,16 @@
                     "placement": {
                         "mode": "absolute",
                         "x": 0,
-                        "y": 200,
+                        "y": 206,
                         "width": 368,
-                        "height": 24
+                        "height": 22
                     },
                     "layout": {
                         "type": "none"
                     },
                     "style": {
                         "textColor": "#888888",
-                        "fontSize": 16,
+                        "fontSize": 15,
                         "textAlign": "center"
                     },
                     "labelProps": {
@@ -1209,16 +1256,16 @@
                     "placement": {
                         "mode": "absolute",
                         "x": 0,
-                        "y": 224,
+                        "y": 228,
                         "width": 368,
-                        "height": 28
+                        "height": 26
                     },
                     "layout": {
                         "type": "none"
                     },
                     "style": {
                         "textColor": "#FFD700",
-                        "fontSize": 20,
+                        "fontSize": 19,
                         "textAlign": "center"
                     },
                     "labelProps": {
@@ -1231,16 +1278,16 @@
                     "placement": {
                         "mode": "absolute",
                         "x": 0,
-                        "y": 252,
+                        "y": 254,
                         "width": 368,
-                        "height": 28
+                        "height": 26
                     },
                     "layout": {
                         "type": "none"
                     },
                     "style": {
                         "textColor": "#C0C0C0",
-                        "fontSize": 20,
+                        "fontSize": 19,
                         "textAlign": "center"
                     },
                     "labelProps": {
@@ -1255,14 +1302,14 @@
                         "x": 0,
                         "y": 280,
                         "width": 368,
-                        "height": 28
+                        "height": 26
                     },
                     "layout": {
                         "type": "none"
                     },
                     "style": {
                         "textColor": "#CD7F32",
-                        "fontSize": 20,
+                        "fontSize": 19,
                         "textAlign": "center"
                     },
                     "labelProps": {
