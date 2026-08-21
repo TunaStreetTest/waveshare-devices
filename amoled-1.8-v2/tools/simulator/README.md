@@ -28,6 +28,34 @@ loaded by path via `--drive` / `?drive=`, never hardcoded in the core.
 | `lint.js` | `--check <app-id>`: dynamic reachability sweep (boots under `--fixture`, fails on any `{success:false}` from `SystemGui`, fires every subscribed action once, advances the clock past every timer interval) + static R1-R5 token/trap lint over `res/screens/*.json`, thresholds read from `uikit/tokens.json`. |
 | `examples/racing-bot.js` | tunastreet.racing's autopilot, moved out of the core. Exports `{create(shim,opts), keymap, onKey}` -- the driver contract below. |
 
+
+## The panel wall — every app on screen at once
+
+`./wall.sh start` brings up one window per app, tiled left to right, each with
+its own `serve.js` proxying to that app's real LAN backend so the panels show
+live data:
+
+| App | sim port | proxies to | window x |
+|---|---|---|---|
+| racing | 8097 | `:8093` (fixture + autopilot, see below) | 40 |
+| xviewer | 8095 | `:8091` | 440 |
+| agent | 8098 | `:8094` | 840 |
+| tminus | 8096 | `:8092` | 1240 |
+
+Windows are 388×468 at y=70 — the 368×448 glass plus its shadow ring, nothing
+else. `start` is idempotent (it skips whatever is already up), `stop` closes
+what it started, `status` prints the current state, and `tile` re-applies
+positions without restarting anything.
+
+**Racing runs on its fixture, deliberately.** The autopilot against the live
+backend would POST real telemetry into the pipeline and land bot scores on the
+shared leaderboard. The other three are live.
+
+**Why tiling happens over CDP and not `--window-position`:** Chromium ignores
+that flag under WSLg. Every window opens stacked at the same spot and whichever
+launched first shows underneath all the others — which is exactly what it looks
+like when "a panel of the racing game is under every other app".
+
 ## Usage
 
 ```bash
