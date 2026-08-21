@@ -5,75 +5,81 @@
         "bgColor": "#000000",
         "padding": 0
     },
+    "layout": {
+        "type": "none"
+    },
     "commonProps": {
         "scrollable": false,
+        "pressLock": true,
         "clickable": true
     },
-    "layout": {
-        "type": "flex",
-        "flexFlow": "column",
-        "mainAlign": "start",
-        "crossAlign": "center",
-        "gap": 4
-    },
-    "events": [
-        {
-            "type": "gesture",
-            "action": "tminus.gesture"
-        }
-    ],
     "children": [
         {
             "type": "container",
             "id": "topbar",
             "placement": {
-                "mode": "flow",
+                "mode": "absolute",
+                "x": 0,
+                "y": 0,
                 "width": 368,
-                "height": 34
+                "height": 44
+            },
+            "layout": {
+                "type": "none"
             },
             "style": {
                 "bgColor": "#000000",
-                "padding": 0
+                "padding": 0,
+                "radius": 0
             },
             "commonProps": {
                 "scrollable": false,
+                "pressLock": true,
                 "clickable": false
-            },
-            "layout": {
-                "type": "flex",
-                "flexFlow": "row",
-                "mainAlign": "spaceBetween",
-                "crossAlign": "center",
-                "gap": 4
             },
             "children": [
                 {
                     "type": "label",
                     "id": "nav_prev",
                     "placement": {
-                        "mode": "flow",
-                        "width": 44,
-                        "height": 34
+                        "mode": "absolute",
+                        "x": 0,
+                        "y": 0,
+                        "width": 64,
+                        "height": 44
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
-                        "textColor": "#4a4a4a",
-                        "fontSize": 26,
+                        "textColor": "#888888",
+                        "fontSize": 28,
                         "textAlign": "center"
                     },
-                    "commonProps": {
-                        "clickable": true
-                    },
                     "labelProps": {
-                        "text": "«"
+                        "text": "\u00ab"
+                    },
+                    "commonProps": {
+                        "clickable": true,
+                        "scrollable": false,
+                        "pressLock": true
                     },
                     "events": [
                         {
-                            "type": "clicked",
+                            "type": "pressed",
                             "effects": [
                                 {
                                     "type": "emitAction",
-                                    "action": "tminus.prev",
-                                    "requireValidPress": true
+                                    "action": "tminus.prev"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "released",
+                            "effects": [
+                                {
+                                    "type": "emitAction",
+                                    "action": "tminus.prev"
                                 }
                             ]
                         }
@@ -83,13 +89,18 @@
                     "type": "label",
                     "id": "brand",
                     "placement": {
-                        "mode": "flow",
-                        "flexGrow": 1,
-                        "height": 24
+                        "mode": "absolute",
+                        "x": 64,
+                        "y": 10,
+                        "width": 240,
+                        "height": 26
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
                         "textColor": "#ffb000",
-                        "fontSize": 14,
+                        "fontSize": 20,
                         "textAlign": "center"
                     },
                     "labelProps": {
@@ -100,29 +111,44 @@
                     "type": "label",
                     "id": "nav_next",
                     "placement": {
-                        "mode": "flow",
-                        "width": 44,
-                        "height": 34
+                        "mode": "absolute",
+                        "x": 304,
+                        "y": 0,
+                        "width": 64,
+                        "height": 44
+                    },
+                    "layout": {
+                        "type": "none"
                     },
                     "style": {
-                        "textColor": "#4a4a4a",
-                        "fontSize": 26,
+                        "textColor": "#888888",
+                        "fontSize": 28,
                         "textAlign": "center"
                     },
-                    "commonProps": {
-                        "clickable": true
-                    },
                     "labelProps": {
-                        "text": "»"
+                        "text": "\u00bb"
+                    },
+                    "commonProps": {
+                        "clickable": true,
+                        "scrollable": false,
+                        "pressLock": true
                     },
                     "events": [
                         {
-                            "type": "clicked",
+                            "type": "pressed",
                             "effects": [
                                 {
                                     "type": "emitAction",
-                                    "action": "tminus.next",
-                                    "requireValidPress": true
+                                    "action": "tminus.next"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "released",
+                            "effects": [
+                                {
+                                    "type": "emitAction",
+                                    "action": "tminus.next"
                                 }
                             ]
                         }
@@ -134,13 +160,18 @@
             "type": "label",
             "id": "prefix",
             "placement": {
-                "mode": "flow",
-                "width": 344,
-                "height": 20
+                "mode": "absolute",
+                "x": 0,
+                "y": 50,
+                "width": 368,
+                "height": 22
+            },
+            "layout": {
+                "type": "none"
             },
             "style": {
-                "textColor": "#8a6a20",
-                "fontSize": 14,
+                "textColor": "#ffb000",
+                "fontSize": 16,
                 "textAlign": "center"
             },
             "labelProps": {
@@ -151,17 +182,19 @@
             "type": "label",
             "id": "clock",
             "placement": {
-                "mode": "flow",
-                "width": 344,
-                "height": 72
+                "mode": "absolute",
+                "x": 0,
+                "y": 74,
+                "width": 368,
+                "height": 68
+            },
+            "layout": {
+                "type": "none"
             },
             "style": {
                 "textColor": "#ffb000",
-                "fontSize": 48,
+                "fontSize": 56,
                 "textAlign": "center"
-            },
-            "commonProps": {
-                "clickable": true
             },
             "labelProps": {
                 "text": "--:--:--"
@@ -169,31 +202,24 @@
             "bindings": {
                 "style.textColor": "clockColor",
                 "style.fontSize": "clockSize"
-            },
-            "events": [
-                {
-                    "type": "clicked",
-                    "effects": [
-                        {
-                            "type": "emitAction",
-                            "action": "tminus.next",
-                            "requireValidPress": true
-                        }
-                    ]
-                }
-            ]
+            }
         },
         {
             "type": "label",
             "id": "vehicle",
             "placement": {
-                "mode": "flow",
-                "width": 344,
+                "mode": "absolute",
+                "x": 8,
+                "y": 148,
+                "width": 352,
                 "height": 32
             },
+            "layout": {
+                "type": "none"
+            },
             "style": {
-                "textColor": "#f2ede4",
-                "fontSize": 20,
+                "textColor": "#f0f0f0",
+                "fontSize": 22,
                 "textAlign": "center"
             },
             "labelProps": {
@@ -204,13 +230,18 @@
             "type": "label",
             "id": "mission",
             "placement": {
-                "mode": "flow",
-                "width": 344,
-                "flexGrow": 1
+                "mode": "absolute",
+                "x": 8,
+                "y": 182,
+                "width": 352,
+                "height": 28
+            },
+            "layout": {
+                "type": "none"
             },
             "style": {
-                "textColor": "#7a7468",
-                "fontSize": 14,
+                "textColor": "#888888",
+                "fontSize": 18,
                 "textAlign": "center"
             },
             "labelProps": {
@@ -218,16 +249,39 @@
             }
         },
         {
+            "type": "image",
+            "id": "art",
+            "placement": {
+                "mode": "absolute",
+                "x": 0,
+                "y": 206,
+                "width": 368,
+                "height": 168
+            },
+            "layout": {
+                "type": "none"
+            },
+            "imageProps": {
+                "src": "${image.launch}",
+                "innerAlign": "contain"
+            }
+        },
+        {
             "type": "label",
             "id": "pad",
             "placement": {
-                "mode": "flow",
-                "width": 344,
-                "height": 18
+                "mode": "absolute",
+                "x": 8,
+                "y": 380,
+                "width": 352,
+                "height": 22
+            },
+            "layout": {
+                "type": "none"
             },
             "style": {
-                "textColor": "#3a3630",
-                "fontSize": 12,
+                "textColor": "#888888",
+                "fontSize": 16,
                 "textAlign": "center"
             },
             "labelProps": {
@@ -238,13 +292,18 @@
             "type": "label",
             "id": "status",
             "placement": {
-                "mode": "flow",
-                "width": 344,
-                "height": 16
+                "mode": "absolute",
+                "x": 8,
+                "y": 402,
+                "width": 352,
+                "height": 22
+            },
+            "layout": {
+                "type": "none"
             },
             "style": {
-                "textColor": "#f4212e",
-                "fontSize": 11,
+                "textColor": "#888888",
+                "fontSize": 16,
                 "textAlign": "center"
             },
             "labelProps": {
@@ -255,18 +314,29 @@
             "type": "label",
             "id": "meta",
             "placement": {
-                "mode": "flow",
-                "width": 344,
-                "height": 14
+                "mode": "absolute",
+                "x": 8,
+                "y": 424,
+                "width": 352,
+                "height": 20
+            },
+            "layout": {
+                "type": "none"
             },
             "style": {
-                "textColor": "#4a4a4a",
-                "fontSize": 11,
+                "textColor": "#1a1a1a",
+                "fontSize": 15,
                 "textAlign": "center"
             },
             "labelProps": {
                 "text": ""
             }
+        }
+    ],
+    "events": [
+        {
+            "type": "gesture",
+            "action": "tminus.gesture"
         }
     ]
 }

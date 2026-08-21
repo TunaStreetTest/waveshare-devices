@@ -207,6 +207,7 @@
         this.nextTimerId = 1;
         this.nextReqId = 1;
         this.subscribedActions = {};
+        this.cacheFiles = {};   // cache relative_path -> URL it was downloaded from
         this.subscribedEvents = {};
         this.app = null;
         this.timeMs = 0;
@@ -236,7 +237,14 @@
             var v = this.doc.byPath[p.Path];
             if (!v) { return { success: false, error: "no path " + p.Path }; }
             var src = p.Src;
-            v._src = (typeof src === "string" && src.indexOf("${") !== 0) ? "${image." + src + "}" : src;
+            var rel = src && src.$brookesiaStoragePath && src.$brookesiaStoragePath.relative_path;
+            if (rel) {
+                // Resolve the cache marker back to the URL the app downloaded
+                // it from, so the renderer can actually show the picture.
+                src = this.cacheFiles[rel] || src;
+            }
+            v._src = (typeof src === "string" && src.indexOf("${") !== 0 && src.indexOf("http") !== 0)
+                ? "${image." + src + "}" : src;
             v._dirty = true;
             return { success: true };
         }
@@ -275,6 +283,18 @@
             return { success: false, error: "unimplemented Http." + fn };
         }
         var id = this.nextReqId++;
+        // A download to a $brookesiaStoragePath marker is how an app gets a
+        // picture onto the device: it fetches to a cache file and later points
+        // an image node at that file. There is no cache filesystem here, so
+        // the marker's relative_path is mapped to the URL it was fetched from
+        // and SetViewSrc resolves it back -- without this the harness shows a
+        // black card for every downloaded image, which is most of what the X
+        // viewer displays.
+        var dl = p.Request && p.Request.download_path;
+        var marker = dl && dl.$brookesiaStoragePath && dl.$brookesiaStoragePath.relative_path;
+        if (marker) {
+            this.cacheFiles[marker] = p.Request.url;
+        }
         var promise = Promise.resolve().then(function () { return self.httpFetch(p.Request); });
         if (fn === "Request") {
             // Synchronous fallback path: the real bridge blocks the JS thread;

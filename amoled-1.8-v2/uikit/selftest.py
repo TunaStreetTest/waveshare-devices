@@ -5,9 +5,14 @@ Two kinds of check:
   1. Deliberate violations (an 11px label, a 50px button, an absolute child
      under a stack) must raise at generation time -- proving the traps are
      structurally closed, not just documented.
-  2. lint.py's structural checks agree with the fixtures: xviewer's
-     home.json (hand-written, predates panelkit) flags exactly the known bad
-     nodes, and racing's home.json (built with panelkit) comes back clean.
+  2. lint.py's structural checks agree with the fixtures: the dirty screen
+     in fixtures/ flags exactly the known bad nodes, and racing's live
+     home.json (built with panelkit) comes back clean.
+
+The dirty fixture is tunastreet.xviewer's hand-written screen as it shipped
+before #198 rebuilt it -- kept here as a frozen copy precisely because the
+live file was going to be fixed, and a lint whose only proof is a file
+somebody is about to repair has no proof at all.
 
 Run: python3 selftest.py
 """
@@ -19,7 +24,7 @@ import panelkit as pk
 import tokens as tk
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-XVIEWER_JSON = os.path.join(HERE, "..", "apps", "tunastreet.xviewer", "res", "screens", "home.json")
+DIRTY_JSON = os.path.join(HERE, "fixtures", "dirty-screen.json")
 RACING_JSON = os.path.join(HERE, "..", "apps", "tunastreet.racing", "res", "screens", "home.json")
 
 _failures = []
@@ -83,8 +88,8 @@ def test_row_clamps_gap_for_tap_targets():
 
 
 # --------------------------------------------------------------- lint fixtures
-def test_xviewer_flags_known_bad_nodes():
-    violations = lint.lint_file(XVIEWER_JSON)
+def test_dirty_fixture_flags_known_bad_nodes():
+    violations = lint.lint_file(DIRTY_JSON)
     require_valid_press_sites = set()
     text_floor_sites = set()
     for v in violations:
@@ -112,7 +117,7 @@ if __name__ == "__main__":
     check("stack() rejects absolute child", test_stack_rejects_absolute_child)
     check("canvas() rejects flow child", test_canvas_rejects_flow_child)
     check("row() clamps gap for tap targets", test_row_clamps_gap_for_tap_targets)
-    check("xviewer.json flags exactly the known bad nodes", test_xviewer_flags_known_bad_nodes)
+    check("dirty fixture flags exactly the known bad nodes", test_dirty_fixture_flags_known_bad_nodes)
     check("racing.json lints clean", test_racing_is_clean)
 
     if _failures:

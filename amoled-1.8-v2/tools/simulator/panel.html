@@ -4,14 +4,17 @@
 <meta charset="utf-8">
 <title>Brookesia panel simulator</title>
 <style>
-  /* Panel-only page: the 368x448 glass, centred, on its own dark ground.
-     Nothing shares its horizontal band -- any control or log this page
-     needs goes below the panel's own bottom edge, never beside it.
+  /* Panel-only page: the 368x448 glass and nothing else. The window is
+     meant to be sized to the panel, so there is no room for -- and no
+     reason for -- controls or a log around it. Add ?chrome=1 to reveal the
+     driver button and the log strip underneath when debugging; they never
+     sit beside the panel, only below it.
      App/driver/fixture selection is query-params + keyboard, not on-page
      chrome (see README.md's flag list). */
   html, body { height:100%; }
   body { background:#0b0b0d; color:#ddd; font-family:'Segoe UI',sans-serif; margin:0;
          display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; }
+  body:not(.chrome) #bar, body:not(.chrome) #log { display:none; }
   #panel { position:relative; width:368px; height:448px; background:#000; overflow:hidden;
            border-radius:22px; box-shadow:0 0 0 10px #111, 0 12px 40px #000; flex:none; }
   #panel * { box-sizing:border-box; }
@@ -44,6 +47,9 @@ const params = new URLSearchParams(location.search);
 const APP = params.get("app");
 const DRIVE = params.get("drive");
 const USE_FIXTURE = params.get("fixture") === "1";
+// The window is sized to the glass, so the driver button and log strip are
+// off unless asked for -- ?chrome=1 puts them back, below the panel.
+if (params.get("chrome") === "1") { document.body.classList.add("chrome"); }
 const AUTO_CLAUDE = params.get("claude") === "1";
 
 const logEl = document.getElementById("log");
@@ -213,19 +219,23 @@ DomRenderer.prototype.render = function () {
       }
       el.style.fontWeight = ((n._size || (n.style && n.style.fontSize) || 14) >= 20) ? "700" : "500";
     } else if (n.type === "image") {
-      // _src is a "${image.<id>}" ref for the static imageSet (renders below)
-      // or, after SetViewSrc with a $brookesiaStoragePath cache marker (e.g.
-      // xviewer's downloaded post JPEGs), an object -- this shim has no
-      // storage/cache filesystem, so those don't render here. Deliberate gap,
-      // documented in README.md; SetViewSrc still reports success either way,
-      // matching the real "accepted, not necessarily rendered" contract.
+      // _src is either a "${image.<id>}" ref into the package's static
+      // imageSet, or an http(s) URL -- the shim resolves a
+      // $brookesiaStoragePath cache marker back to the URL the app downloaded
+      // it from, so a picture the app fetched to its cache (xviewer's post
+      // JPEGs, its profile card) renders here the same as on the device.
       const raw = n._src;
-      const id = (typeof raw === "string" && raw.indexOf("${image.") === 0)
-        ? raw.replace("${image.", "").replace("}", "")
-        : null;
-      if (el.dataset.img !== (id || "")) {
-        el.dataset.img = id || "";
-        el.innerHTML = id ? `<img src="${PKG}/res/images/${id}.png${V}">` : "";
+      let src = "";
+      if (typeof raw === "string") {
+        if (raw.indexOf("${image.") === 0) {
+          src = `${PKG}/res/images/${raw.replace("${image.", "").replace("}", "")}.png${V}`;
+        } else if (raw.indexOf("http") === 0) {
+          src = raw;
+        }
+      }
+      if (el.dataset.img !== src) {
+        el.dataset.img = src;
+        el.innerHTML = src ? `<img src="${src}">` : "";
       }
     }
   }

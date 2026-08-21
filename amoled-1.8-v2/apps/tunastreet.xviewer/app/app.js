@@ -52,6 +52,8 @@
     var lastNavMs = 0;          // gesture debounce clock (Date.now deltas)
     var feedInFlight = false;
     var forceFirstOnFeed = false; // CLEAR: jump to card 0 instead of keeping place
+    var profileReady = false;   // profile card downloaded to its own cache slot
+    var profileInFlight = false;
     var refreshTimerId = null;
     var retryTimerId = null;
     var httpServiceHandle = null;
@@ -234,6 +236,9 @@
         }
         var currentId = posts[idx] ? posts[idx].id : null;
         posts = list;
+        if (!Array.isArray(body) && body.profile_img && !profileReady && !profileInFlight) {
+            fetchProfileCard(String(body.profile_img));
+        }
         if (forceFirstOnFeed) {
             // CLEAR: always land on the first card, don't try to keep place.
             forceFirstOnFeed = false;
@@ -308,10 +313,41 @@
     }
 
     // Most posts carry no media, and the 368x220 card is the biggest thing on
-    // the panel - left black it throws away half the glass. A text post gets a
-    // Tuna Street tile instead, picked from the three accents by post id so
-    // consecutive text posts don't look identical. The card is never empty.
+    // the panel - left black it throws away half the glass. A text post shows
+    // the account's own profile card instead (composed host-side, fetched once
+    // and kept in its own cache slot). If that isn't available, a Tuna Street
+    // tile stands in, picked by post id so consecutive text posts differ. The
+    // card is never empty.
     var TILES = ["tile_a", "tile_b", "tile_c"];
+    var PROFILE_FILE = "img_profile.jpg";
+
+    function fetchProfileCard(pathOrUrl) {
+        profileInFlight = true;
+        var url = (pathOrUrl.indexOf("http") === 0)
+            ? pathOrUrl
+            : BACKEND + (pathOrUrl.charAt(0) === "/" ? pathOrUrl : "/" + pathOrUrl);
+        httpRequest({
+            url: url,
+            method: "GET",
+            timeout_ms: 15000,
+            download_path: cacheMarker(PROFILE_FILE),
+            max_file_size: 262144
+        }, function (response) {
+            profileInFlight = false;
+            if (!response || (response.error && response.error !== "Ok") || response.status_code !== 200) {
+                log("profile card unavailable:", response ? (response.error_message || response.error) : "no response");
+                return;
+            }
+            profileReady = true;
+            log("profile card cached");
+            // A text post already on screen is showing a generated tile;
+            // swap it for the real thing now that it's here.
+            var p = posts[idx];
+            if (p && !imageUrlFor(p)) {
+                showTile(p);
+            }
+        });
+    }
 
     function tileFor(p) {
         var id = String((p && p.id) || "");
@@ -323,7 +359,13 @@
     }
 
     function showTile(p) {
-        setViewSrc("/media/card_img", tileFor(p));
+        var ok = false;
+        if (profileReady) {
+            ok = setViewSrc("/media/card_img", cacheMarker(PROFILE_FILE)).success;
+        }
+        if (!ok) {
+            setViewSrc("/media/card_img", tileFor(p));
+        }
         setBinding("/media/card_img", "imgHidden", "false");
         shownSlot = -1;
     }

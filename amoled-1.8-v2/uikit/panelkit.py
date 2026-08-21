@@ -213,7 +213,13 @@ def label(id, x, y, w, h, text="", role="body", color=tk.INK, align="center",
     if b:
         n["bindings"] = b
     if click:
-        n["commonProps"] = {"clickable": True}
+        # A tappable label is a tap target, so it gets the whole contract, not
+        # just `clickable`: without pressLock a drifted press is discarded, and
+        # without scrollable:false a small drag scrolls instead of pressing.
+        # (lint R2 caught this on the first screen that used a clickable
+        # label -- the trap was only closed for canvas()/button() before.)
+        n["commonProps"] = {"clickable": True, "scrollable": False,
+                            "pressLock": True}
         n["events"] = _tap_events(click)
     return n
 
