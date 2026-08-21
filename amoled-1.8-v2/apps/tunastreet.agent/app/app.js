@@ -45,6 +45,8 @@
     var bootUnix = 0;        // server_unix of that digest
     var ticks = 0;           // seconds since it landed
     var sweep = 0;
+    var sweepColor = null;    // last colour painted, so a tick can repaint 2 cells not 12
+    var sweepBeating = null;
     var inFlight = false;
     var pendingHttp = {};
     var httpServiceHandle = null;
@@ -147,24 +149,33 @@
 
     // ---- render -----------------------------------------------------------
 
-    // The sweep is a row of cells with one bright head running left to right,
-    // trailing two dimmer cells - a monitor trace, done with bgColor writes
-    // only, which is the one style mutation this runtime does cheaply.
-    function renderSweep() {
+    // The sweep is a row of cells with one bright head running left to right -
+    // a monitor trace, done with bgColor writes only, which is the one style
+    // mutation this runtime does cheaply.
+    //
+    // Only the two cells that changed are written: at one step per second that
+    // is 2 service calls instead of 12. A full repaint happens once, when the
+    // colour or the beating/not-beating state actually changes.
+    function paintCell(i, color) {
+        setBinding("/hb/hb" + i, "hb" + i + "Bg", color);
+    }
+
+    function renderSweep(full) {
         var head = sweep % CELLS;
         var color = liveColor();
-        var beating = snap && beatAge() >= 0 && beatAge() <= DEAD_S;
-        for (var i = 0; i < CELLS; i++) {
-            var c = DIM;
-            if (beating) {
-                if (i === head) {
-                    c = color;
-                } else if (i === (head + CELLS - 1) % CELLS) {
-                    c = DIM;
-                }
+        var beating = !!(snap && beatAge() >= 0 && beatAge() <= DEAD_S);
+        var changed = full || color !== sweepColor || beating !== sweepBeating;
+
+        if (changed) {
+            for (var i = 0; i < CELLS; i++) {
+                paintCell(i, beating && i === head ? color : DIM);
             }
-            setBinding("/hb/hb" + i, "hb" + i + "Bg", c);
+        } else if (beating) {
+            paintCell((head + CELLS - 1) % CELLS, DIM);
+            paintCell(head, color);
         }
+        sweepColor = color;
+        sweepBeating = beating;
     }
 
     function renderClock() {
@@ -203,7 +214,7 @@
 
         setText("/foot/foot_id", snap.agent_id + "  " + snap.agent_type + " " + snap.agent_version);
 
-        renderSweep();
+        renderSweep(true);
         renderClock();
     }
 
