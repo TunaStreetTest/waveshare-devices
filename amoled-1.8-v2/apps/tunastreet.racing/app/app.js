@@ -444,11 +444,10 @@
         log("game over", score);
     }
 
-    function steer(dir) {
+    function steerTo(target) {
         if (phase !== "game") { return; }
-        var next = lane + dir;
-        if (next < 0 || next > 2) { return; }
-        lane = next;
+        if (target < 0 || target > 2 || target === lane) { return; }
+        lane = target;
         placeCar();
         flushBinds();
     }
@@ -482,7 +481,7 @@
                     }
                 }
 
-                var actions = ["racing.go", "racing.left", "racing.right",
+                var actions = ["racing.go", "racing.lane0", "racing.lane1", "racing.lane2",
                                "racing.car_a", "racing.car_b", "racing.again"];
                 for (var j = 0; j < actions.length; j++) {
                     var sub = svcCall("SystemGui", "SubscribeAction", { Action: actions[j] });
@@ -509,10 +508,12 @@
             try {
                 if (action === "racing.go") {
                     startGame();
-                } else if (action === "racing.left") {
-                    steer(-1);
-                } else if (action === "racing.right") {
-                    steer(1);
+                } else if (action === "racing.lane0") {
+                    steerTo(0);
+                } else if (action === "racing.lane1") {
+                    steerTo(1);
+                } else if (action === "racing.lane2") {
+                    steerTo(2);
                 } else if (action === "racing.car_a") {
                     selectCar("corolla");
                 } else if (action === "racing.car_b") {
