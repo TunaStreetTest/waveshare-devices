@@ -68,60 +68,74 @@ function boot(appId) {
 }
 
 /*
- * One continuous drag must move exactly one card.
+ * One drag is one card, and the NEXT drag is the next card.
  *
- * IMPORTANT: a real swipe on the glass produces BOTH kinds of event, and a test
- * that only sends one of them is testing half a swipe. The prev/next tap zones
- * cover the halves of the media card -- the very area you drag across -- and
- * panelkit fires their action on `pressed` AND `released`; meanwhile the touch
- * layer emits gesture events for as long as the finger moves. So this drives:
+ * This test used to drive `pressed(tap zone) -> gesture x N -> released(tap
+ * zone)` and assert a debounce swallowed the extras. Both halves of that model
+ * were wrong, which is why the panel kept mis-stepping while the harness stayed
+ * green (#220):
  *
- *     pressed(tap zone) -> gesture x N -> released(tap zone)
+ *   * The touch layer does NOT emit gesture after gesture. LVGL latches
+ *     indev->pointer.gesture_sent on the first gesture of a press, so a drag of
+ *     any length produces exactly ONE (lv_indev.c, indev_gesture()).
+ *   * The extra steps came from the tap zones, which covered the very area the
+ *     finger drags across and fire on `pressed` AND `released`. One drag =
+ *     2 taps + 1 gesture = 3 cards, and the 2 taps went in whichever direction
+ *     the drag STARTED.
  *
- * The first version of this test emitted only the gesture events. It passed,
- * shipped, and the panel then stepped SIX cards on one swipe, because taps and
- * swipes had been given independent debounce clocks and each scored the same
- * finger movement separately. Do not simplify this back to gesture-only.
+ * So the fix was structural, not a longer cooldown: neither app has a tap
+ * target under the swipe any more (uikit lint R11 now refuses to let one back
+ * in), and the debounce is gone. Which makes the second assertion here the
+ * important one -- with a cooldown, two real swipes in quick succession scored
+ * one card, and that is exactly what "it takes a touch and a swipe to move
+ * forward more than once" was.
  */
-async function swipeBurst(appId, action, tapAction, readIndex, readCount) {
-    console.log("\n" + appId + " -- swipe burst latch (tap zone + gesture, as on the glass)");
-    const { shim } = boot(appId);
+async function swipeBurst(appId, action, readIndex, readCount) {
+    console.log("\n" + appId + " -- one drag, one card (no tap target under the swipe)");
+    const { shim, pkg } = boot(appId);
     await settle(shim);
 
+    const screen = pkg.screen;
+    check(appId + ": nothing under the swipe surface is a tap target",
+          !hasTapTarget(screen), tapTargetPaths(screen).join(", "));
+
     const before = readIndex(shim);
-    shim.emit(tapAction, {});                    // finger down on the nav zone
-    for (let i = 0; i < 15; i++) {               // ~600ms of continuous drag
-        shim.emit(action, { direction: "left", distance: 20 * i, ms: 40 * i });
-        await sleep(40);
-    }
-    shim.emit(tapAction, {});                    // finger up, same zone
+    shim.emit(action, { direction: "left", distance: 180, ms: 600 });   // one drag
     const count = readCount(shim);
     const afterDrag = readIndex(shim);
-    check(appId + ": one 600ms drag over a tap zone steps exactly once",
+    check(appId + ": one drag steps exactly once",
           steppedOnce(before, afterDrag, count),
           "index " + before + " -> " + afterDrag + " of " + count);
 
-    await sleep(500);
+    // No quiet window: a second swipe right behind the first must land. The
+    // 350ms cooldown this replaced ate it.
     const beforeSecond = readIndex(shim);
-    shim.emit(tapAction, {});
-    shim.emit(action, { direction: "left", distance: 20, ms: 40 });
-    shim.emit(tapAction, {});
-    check(appId + ": a second swipe after the quiet window steps exactly once",
+    shim.emit(action, { direction: "left", distance: 180, ms: 600 });
+    check(appId + ": a second swipe immediately after steps again",
           steppedOnce(beforeSecond, readIndex(shim), count),
           "index " + beforeSecond + " -> " + readIndex(shim) + " of " + count);
 
-    await sleep(500);
-    const beforeTap = readIndex(shim);
-    shim.emit(tapAction, {});                    // a clean tap (no drag) still works
-    check(appId + ": a plain tap on the nav zone still steps once",
-          steppedOnce(beforeTap, readIndex(shim), count),
-          "index " + beforeTap + " -> " + readIndex(shim) + " of " + count);
-
-    await sleep(500);
     const beforeV = readIndex(shim);
     shim.emit(action, { direction: "up", distance: 120, ms: 100 });
     check(appId + ": vertical gesture is ignored (system home gesture)",
           readIndex(shim) === beforeV);
+}
+
+// The structural half of the same guarantee, asserted on the shipped screen
+// rather than on behaviour: a `gesture` surface with a tap target inside it is
+// uikit lint R11, and this is the runtime-side reminder of why.
+const TAP_EVENTS = ["pressed", "released", "pressing", "clicked"];
+function tapTargetPaths(node, path, out) {
+    out = out || [];
+    path = (path || "") + "/" + (node.id || "?");
+    if ((node.events || []).some((ev) => TAP_EVENTS.indexOf(ev.type) > -1)) { out.push(path); }
+    (node.children || []).forEach((c) => tapTargetPaths(c, path, out));
+    return out;
+}
+function hasTapTarget(screen) {
+    // The toolbar's LIKE button is a legitimate target away from the drag, so
+    // this asks only about the region the finger sweeps: the media/art band.
+    return tapTargetPaths(screen).some((p) => /media|nav_prev|nav_next|art/.test(p));
 }
 
 /*
@@ -152,38 +166,37 @@ function asciiOnly(appId) {
 }
 
 /*
- * Same latch, asserted on the wire.
+ * Same guarantee, asserted on the wire.
  *
  * tminus navigates server-side: a swipe POSTs /tminus/step and the backend
  * decides which card is next, so with a static fixture the rendered index
  * cannot move. What CAN be observed -- and what actually matters -- is how many
- * step requests one continuous drag put on the wire. Exactly one.
+ * step requests one drag put on the wire. Exactly one, and the next drag puts
+ * the next one.
  */
 async function swipeStepRequests(appId, action, pathFragment) {
-    console.log("\n" + appId + " -- swipe burst latch (requests on the wire)");
-    const { shim, requests } = boot(appId);
+    console.log("\n" + appId + " -- one drag, one step request");
+    const { shim, requests, pkg } = boot(appId);
     await settle(shim);
+
+    const screen = pkg.screen;
+    check(appId + ": nothing under the swipe surface is a tap target",
+          !hasTapTarget(screen), tapTargetPaths(screen).join(", "));
 
     const before = requests.filter((r) => r.includes(pathFragment)).length;
-    shim.emit("tminus.next", {});                // finger down on the nav zone
-    for (let i = 0; i < 15; i++) {
-        shim.emit(action, { direction: "left", distance: 20 * i, ms: 40 * i });
-        await sleep(40);
-    }
-    shim.emit("tminus.next", {});                // finger up
+    shim.emit(action, { direction: "left", distance: 180, ms: 600 });   // one drag
     await settle(shim);
     const issued = requests.filter((r) => r.includes(pathFragment)).length - before;
-    check(appId + ": one 600ms drag issues exactly one step request",
+    check(appId + ": one drag issues exactly one step request",
           issued === 1, "issued " + issued);
 
-    await sleep(300);
     const mark = requests.filter((r) => r.includes(pathFragment)).length;
-    shim.emit(action, { direction: "left", distance: 20, ms: 40 });
+    shim.emit(action, { direction: "left", distance: 180, ms: 600 });
     await settle(shim);
-    check(appId + ": a second swipe after the quiet window still steps",
-          requests.filter((r) => r.includes(pathFragment)).length === mark + 1);
+    check(appId + ": a second swipe immediately after still steps",
+          requests.filter((r) => r.includes(pathFragment)).length === mark + 1,
+          "issued " + (requests.filter((r) => r.includes(pathFragment)).length - mark));
 
-    await sleep(300);
     const mark2 = requests.filter((r) => r.includes(pathFragment)).length;
     shim.emit(action, { direction: "up", distance: 120, ms: 100 });
     await settle(shim);
@@ -194,7 +207,7 @@ async function swipeStepRequests(appId, action, pathFragment) {
 (async function main() {
     const APPS = ["tunastreet.agent", "tunastreet.tminus", "tunastreet.xviewer", "tunastreet.racing"];
 
-    await swipeBurst("tunastreet.xviewer", "xviewer.gesture", "xviewer.next",
+    await swipeBurst("tunastreet.xviewer", "xviewer.gesture",
                      (s) => Number((s.renderer.text("/home/topbar/pos") || "1/1").split("/")[0]),
                      (s) => Number((s.renderer.text("/home/topbar/pos") || "1/1").split("/")[1]));
     await swipeStepRequests("tunastreet.tminus", "tminus.gesture", "/TMINUS/STEP");

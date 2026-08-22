@@ -109,6 +109,96 @@
             },
             "children": [
                 {
+                    "type": "container",
+                    "id": "nav_prev",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 0,
+                        "y": 0,
+                        "width": 184,
+                        "height": 220
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "style": {
+                        "bgColor": "#000000",
+                        "padding": 0,
+                        "radius": 0
+                    },
+                    "commonProps": {
+                        "scrollable": false,
+                        "pressLock": true,
+                        "clickable": true
+                    },
+                    "children": [],
+                    "events": [
+                        {
+                            "type": "pressed",
+                            "effects": [
+                                {
+                                    "type": "emitAction",
+                                    "action": "xviewer.prev"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "released",
+                            "effects": [
+                                {
+                                    "type": "emitAction",
+                                    "action": "xviewer.prev"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "container",
+                    "id": "nav_next",
+                    "placement": {
+                        "mode": "absolute",
+                        "x": 184,
+                        "y": 0,
+                        "width": 184,
+                        "height": 220
+                    },
+                    "layout": {
+                        "type": "none"
+                    },
+                    "style": {
+                        "bgColor": "#000000",
+                        "padding": 0,
+                        "radius": 0
+                    },
+                    "commonProps": {
+                        "scrollable": false,
+                        "pressLock": true,
+                        "clickable": true
+                    },
+                    "children": [],
+                    "events": [
+                        {
+                            "type": "pressed",
+                            "effects": [
+                                {
+                                    "type": "emitAction",
+                                    "action": "xviewer.next"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "released",
+                            "effects": [
+                                {
+                                    "type": "emitAction",
+                                    "action": "xviewer.next"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
                     "type": "image",
                     "id": "card_img",
                     "placement": {

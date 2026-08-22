@@ -2,9 +2,14 @@
  * T-MINUS - ESP-Brookesia v0.8 JavaScript runtime app (issue #184).
  *
  * True-black launch clock on the 368x448 AMOLED. T-0 from the LAN backend
- * (http://192.168.1.121:8092), Launch Library 2. Tap the right half of
- * the middle band for the next launch, the left half for the previous one;
- * swipe left/right does the same. Vertical swipe stays home.
+ * (http://192.168.1.121:8092), Launch Library 2. Swipe left for the next
+ * launch, right for the previous one. Vertical swipe stays home.
+ *
+ * Nothing on this screen is a tap target (#220). The half-panel prev/next
+ * zones this app used to carry sat exactly where the finger drags, and a
+ * clickable object under the finger takes the press -- so the swipe left
+ * through the zone and the zone stepped in whichever direction the drag
+ * STARTED. Swipe-only removes the collision outright.
  *
  * Same sandbox rules as tunastreet.xviewer: plain global script (QuickJS,
  * JS_EVAL_TYPE_GLOBAL), no fetch/XHR/setTimeout; HTTP via the "Http"
@@ -24,17 +29,10 @@
     var HTTP_TIMEOUT_MS = 20000;
     var AMBER = "#ffb000";
     var HOLD = "#ff5a1f";
-    // The touch layer emits several gesture events per continuous drag, so an
-    // undebounced handler steps three or four launches on one swipe -- which
-    // reads as "the swipe is broken" rather than "the swipe is too eager".
-    // Same 350 ms cooldown the X viewer landed on in #193. Taps are immediate.
-    var NAV_COOLDOWN_MS = 350;
-
     var event = null;
     var bootUnix = 0;
     var ticks = 0;
     var navSeq = 0;
-    var lastNavMs = 0;
     var pendingHttp = {};
     var inFlight = false;
     var retryTimerId = null;
@@ -195,45 +193,18 @@
     }
 
     /**
-     * True at most once per cooldown window -- for taps as well as swipes. A
-     * tap target emits its action on BOTH `pressed` and `released` (panelkit
-     * fires both on purpose, since a lone `released` can be swallowed), so
-     * one tap on a nav zone would otherwise step two launches.
-     */
-    function navAllowed() {
-        var t = Date.now();
-        // t < lastNavMs means the clock stepped backward (SNTP); never let
-        // that lock navigation out.
-        if (t < lastNavMs || t - lastNavMs >= NAV_COOLDOWN_MS) {
-            lastNavMs = t;
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * True at most once per continuous drag -- the swipe half of the guard.
+     * No navigation debounce, on purpose (#220).
      *
-     * Shares lastNavMs with navAllowed() ON PURPOSE. One finger movement across
-     * the card produces BOTH kinds of event: the prev/next tap zones cover the
-     * halves of the media card and fire on `pressed` AND `released`, and the
-     * touch layer emits gesture events for as long as the finger moves. Give
-     * swipes their own clock and those become two independent budgets, so one
-     * swipe scores once as a tap and again as a gesture -- which is exactly how
-     * a "fix" for over-swiping turned 3 cards per drag into 6.
-     *
-     * The difference from navAllowed() is not the clock, it is the stamping:
-     * navAllowed() is leading-edge and stamps only when it lets something
-     * through, which is right for a tap (two events, ~0 ms apart). This stamps
-     * on EVERY gesture event, accepted or rejected, so a long drag keeps pushing
-     * the window out and settles to exactly one step however slow it is.
+     * The old guards existed because one drag scored several steps. That was
+     * never "the touch layer emits many gesture events" -- LVGL latches
+     * `indev->pointer.gesture_sent` on the first gesture of a press and sends
+     * exactly one per finger-down/up (lv_indev.c, indev_gesture()). The extra
+     * steps came from the prev/next tap zones firing on `pressed` AND on
+     * `released` under the same drag. Those zones are gone, so one drag is one
+     * gesture is one step, and a cooldown would only swallow the second of two
+     * quick swipes -- which is what "it takes a touch and a swipe to move
+     * forward more than once" was.
      */
-    function gestureAllowed() {
-        var t = Date.now();
-        var gap = t - lastNavMs;
-        lastNavMs = t;                  // ALWAYS extend, accepted or not
-        return gap < 0 || gap >= NAV_COOLDOWN_MS;
-    }
 
     function pad2(n) {
         return (n < 10 ? "0" : "") + n;
@@ -345,7 +316,7 @@
     function render() {
         if (!event) {
             setText("/vehicle", "");
-            setText("/mission", "tap >");
+            setText("/mission", "swipe >");
             setText("/pad", "");
             setText("/meta", "");
             return;
@@ -481,7 +452,7 @@
                     }
                 }
 
-                var actions = ["tminus.gesture", "tminus.prev", "tminus.next"];
+                var actions = ["tminus.gesture"];
                 for (var j = 0; j < actions.length; j++) {
                     var subResult = svcCall("SystemGui", "SubscribeAction", { Action: actions[j] });
                     if (!subResult.success) {
@@ -522,14 +493,8 @@
                     // the system swipe-up home gesture is never interfered
                     // with.
                     if (payload.direction === "left" || payload.direction === "right") {
-                        if (gestureAllowed()) {
-                            step(payload.direction === "left" ? 1 : -1);
-                        }
+                        step(payload.direction === "left" ? 1 : -1);
                     }
-                } else if (action === "tminus.next") {
-                    if (navAllowed()) { step(1); }
-                } else if (action === "tminus.prev") {
-                    if (navAllowed()) { step(-1); }
                 }
             } catch (e) {
                 log("on_action error:", String(e));

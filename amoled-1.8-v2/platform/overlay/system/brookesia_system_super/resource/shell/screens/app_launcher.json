@@ -1,0 +1,155 @@
+{
+    "_comment": [
+        "Overlay of esp-brookesia's launcher screen for the AMOLED 1.8 V2.",
+        "",
+        "Single delta from upstream: grid_stage no longer declares itself",
+        "scrollable unconditionally. It starts NON-scrollable and",
+        "shell_app_launcher.cpp binds `grid_scrollable` true only when the tiles",
+        "genuinely overflow the 388dp viewport (#220).",
+        "",
+        "Upstream's grid was scrollable always, and worse, scrollable by ~18px even",
+        "with every tile on screen -- the C++ seeded the layers' content_height",
+        "from the 406dp `content` container instead of this 388dp scroll viewport.",
+        "Scrolling that grid is what scrambles the tiles; the root cause of the",
+        "scramble is still unidentified, so this removes the scroll rather than",
+        "claiming a diagnosis. With 3 columns (constants/portrait.json) 9 tiles fit",
+        "and the panel shows 7, so on this device the launcher does not scroll at",
+        "all. A 10th app puts the scroll -- and the unexplained scramble -- back.",
+        "",
+        "The false default matters: if the binding ever fails to apply, the",
+        "launcher is non-scrolling rather than silently back to the broken shape."
+    ],
+    "type": "viewScreen",
+    "id": "launcher",
+    "commonProps": {
+        "scrollable": false
+    },
+    "style": {
+        "padding": 0
+    },
+    "styleRefs": [
+        "shell.desktop"
+    ],
+    "children": [
+        {
+            "type": "container",
+            "id": "content",
+            "commonProps": {
+                "scrollable": false
+            },
+            "style": {
+                "padding": 0
+            },
+            "styleRefs": [
+                "shell.desktop"
+            ],
+            "placement": {
+                "mode": "absolute",
+                "x": 0,
+                "y": "${constant.ui.content.metric.y}",
+                "width": "${env.widthDp}",
+                "height": "${expr(${env.heightDp} - ${constant.ui.content.metric.y})}"
+            },
+            "children": [
+                {
+                    "type": "container",
+                    "id": "grid_stage",
+                    "commonProps": {
+                        "scrollable": false
+                    },
+                    "style": {
+                        "padding": 0
+                    },
+                    "bindings": {
+                        "placement.x": "grid_x",
+                        "placement.width": "grid_width",
+                        "commonProps.scrollable": "grid_scrollable"
+                    },
+                    "placement": {
+                        "mode": "absolute",
+                        "x": "${expr((${env.widthDp} - ${constant.ui.content.metric.launcherGridWidth}) / 2)}",
+                        "y": "${constant.ui.content.metric.launcherGridTop}",
+                        "width": "${constant.ui.content.metric.launcherGridWidth}",
+                        "height": "${expr(${env.heightDp} - ${constant.ui.content.metric.y} - ${constant.ui.content.metric.launcherGridTop})}"
+                    },
+                    "children": [
+                        {
+                            "type": "container",
+                            "id": "slot_grid",
+                            "commonProps": {
+                                "clickable": false,
+                                "scrollable": false
+                            },
+                            "bindings": {
+                                "placement.height": "content_height"
+                            },
+                            "style": {
+                                "padding": 0
+                            },
+                            "layout": {
+                                "type": "flex",
+                                "flexFlow": "rowWrap",
+                                "gap": "${constant.ui.content.metric.launcherItemGap}",
+                                "mainAlign": "start",
+                                "crossAlign": "start"
+                            },
+                            "placement": {
+                                "mode": "absolute",
+                                "x": 0,
+                                "y": 0,
+                                "width": "match",
+                                "height": "match"
+                            },
+                            "children": []
+                        },
+                        {
+                            "type": "container",
+                            "id": "item_layer",
+                            "commonProps": {
+                                "clickable": false,
+                                "scrollable": false
+                            },
+                            "bindings": {
+                                "placement.height": "content_height"
+                            },
+                            "style": {
+                                "padding": 0
+                            },
+                            "placement": {
+                                "mode": "absolute",
+                                "x": 0,
+                                "y": 0,
+                                "width": "match",
+                                "height": "match"
+                            },
+                            "children": []
+                        },
+                        {
+                            "type": "container",
+                            "id": "drag_layer",
+                            "commonProps": {
+                                "hidden": true,
+                                "clickable": false,
+                                "scrollable": false
+                            },
+                            "bindings": {
+                                "placement.height": "content_height"
+                            },
+                            "style": {
+                                "padding": 0
+                            },
+                            "placement": {
+                                "mode": "absolute",
+                                "x": 0,
+                                "y": 0,
+                                "width": "match",
+                                "height": "match"
+                            },
+                            "children": []
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

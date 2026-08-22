@@ -143,6 +143,12 @@ function checkScreen(file, doc) {
 const LADDER = (T.text && T.text.font_ladder) || [];
 const LINE_H = (T.text && T.text.line_height) || {};
 const CORNER_R = (T.safe_area && T.safe_area.corner_radius) || 0;
+// The same set as uikit/lint.py's TAP_EVENT_TYPES: every event that makes a
+// node a touch TARGET, as opposed to a gesture listener. tokens.traps
+// .tap_events is the press/release pair R2 polices; R11 also counts the
+// single-shot forms, because they fire under a drag just the same.
+const TAP_EVENT_TYPES = (T.traps.tap_events || []).concat(["pressing", "clicked"])
+    .filter((v, i, a) => a.indexOf(v) === i);
 // Horizontal inset the rounded glass demands at `d` px from the top/bottom edge.
 function cornerInset(d) {
     if (!CORNER_R || d >= CORNER_R || d < 0) { return 0; }
@@ -279,6 +285,41 @@ function cornerInset(d) {
                 } else if (align === "right" && (T.device.width - (bx + bw)) < need) {
                     report(rel, node._path, "R10", "right-aligned text ends at x=" + (bx + bw) + " but the rounded corner needs it to end by x<=" +
                            (T.device.width - need) + " this close to the edge (" + d + "px). Move it down or in.");
+                }
+            }
+        }
+
+        // R11: trap 5 -- a big tap target inside a swipe surface.
+        //
+        // LVGL sends exactly ONE gesture per finger-down/up (indev->pointer
+        // .gesture_sent latches after the first), so the swipe is never what
+        // fires twice. A tap target under the same finger is: panelkit emits
+        // its action on `pressed` AND on `released` deliberately. One drag
+        // across a half-panel nav zone scored three navigations -- two from
+        // the zone, one from the gesture -- and the zone's two went in
+        // whichever direction the drag STARTED. That is #220's "tap and swipe
+        // collision". A small control inside a swipe surface is fine; past
+        // traps.gesture_target_ratio of the surface in BOTH axes, the
+        // "control" is the drag surface.
+        if (T.traps.forbid_target_over_gesture && T.traps.gesture_target_ratio && node.events) {
+            const isTarget = node.events.some((ev) => TAP_EVENT_TYPES.indexOf(ev.type) > -1);
+            if (isTarget) {
+                let anc = node._parent, surface = null;
+                while (anc) {
+                    if ((anc.events || []).some((ev) => ev.type === "gesture")) { surface = anc; break; }
+                    anc = anc._parent;
+                }
+                if (surface) {
+                    // A screen root carries no box of its own -- it is the panel.
+                    const sw = surface._cw || T.device.width, sh = surface._ch || T.device.height;
+                    const w = node._cw || 0, h = node._ch || 0;
+                    const r = T.traps.gesture_target_ratio;
+                    if (sw > 0 && sh > 0 && w >= sw * r && h >= sh * r) {
+                        report(rel, node._path, "R11", w + "x" + h + " tap target covers " +
+                               Math.round(100 * w / sw) + "%x" + Math.round(100 * h / sh) +
+                               "% of the swipe surface " + surface._path + " -- a drag starting on it fires this " +
+                               "action on pressed AND released as well as the gesture. Make it small or drop the tap.");
+                    }
                 }
             }
         }

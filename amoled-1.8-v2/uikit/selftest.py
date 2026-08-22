@@ -12,10 +12,11 @@ Two kinds of check:
      in fixtures/ flags exactly the known bad nodes, and racing's live
      home.json (built with panelkit) comes back clean.
 
-The dirty fixture is tunastreet.xviewer's hand-written screen as it shipped
-before the kit existed -- kept as a frozen copy because the live file was
-going to be fixed, and a lint whose only negative proof is a file someone is
-about to repair has no negative proof.
+The dirty fixtures are both frozen copies of tunastreet.xviewer's screen --
+dirty-screen.json as it was hand-written before the kit existed, and
+tap-over-swipe.json as #198 generated it, with the half-card tap zones #220
+removed. A lint whose only negative proof is a file someone is about to repair
+has no negative proof, so each defect keeps the file that carried it.
 
 Run: python3 selftest.py
 """
@@ -30,6 +31,7 @@ import tokens as tk
 HERE = os.path.dirname(os.path.abspath(__file__))
 DIRTY_JSON = os.path.join(HERE, "fixtures", "dirty-screen.json")
 TAP_UNDER_IMAGE_JSON = os.path.join(HERE, "fixtures", "tap-under-image.json")
+TAP_OVER_SWIPE_JSON = os.path.join(HERE, "fixtures", "tap-over-swipe.json")
 RACING_JSON = os.path.join(HERE, "..", "apps", "tunastreet.racing", "res", "screens", "home.json")
 LINT_JS = os.path.join(HERE, "..", "tools", "simulator", "lint.js")
 APPS_DIR = os.path.join(HERE, "..", "apps")
@@ -126,6 +128,21 @@ def test_undeclared_image_over_tap_zone_is_flagged():
         if v.split(" ")[1] == "R6":
             r6.add(v.split(" ", 1)[0].rsplit("/", 1)[-1])
     assert r6 == {"art_undeclared"}, r6
+
+
+def test_tap_target_over_swipe_surface_is_flagged():
+    """R11: tunastreet.xviewer's screen as it shipped before #220 -- a
+    `gesture` root with two half-card tap zones over the media band. One drag
+    across one of those fired its action on pressed AND on released as well as
+    the gesture: three navigations, two of them in whichever direction the
+    drag STARTED. The toolbar's LIKE button is inside the same gesture surface
+    and must NOT be flagged -- a small control is not the drag surface."""
+    violations = lint.lint_file(TAP_OVER_SWIPE_JSON)
+    r11 = set()
+    for v in violations:
+        if v.split(" ")[1] == "R11":
+            r11.add(v.split(" ", 1)[0].rsplit("/", 1)[-1])
+    assert r11 == {"nav_prev", "nav_next"}, r11
 
 
 def test_non_ascii_text_is_flagged():
@@ -237,6 +254,7 @@ if __name__ == "__main__":
     check("label box under the line height raises (R9)", test_label_box_shorter_than_line_height_raises)
     check("text in the rounded corner raises (R10)", test_corner_text_is_flagged_by_screen)
     check("R5 uses absolute, not parent-relative, coordinates", test_r5_uses_absolute_coordinates)
+    check("tap target over a swipe surface raises (R11)", test_tap_target_over_swipe_surface_is_flagged)
     check("lint.py and lint.js implement the same rules", test_rule_ids_match_lint_js)
     check("every shipped app lints clean", test_shipped_apps_are_clean)
 

@@ -349,6 +349,14 @@ DomRenderer.prototype.render = function () {
     }
     return hit;
   }
+  // Mirrors LVGL's gesture routing, which is a CLIMB, not a hit test: the
+  // swipe starts at the object under the finger and walks up while
+  // LV_OBJ_FLAG_GESTURE_BUBBLE is set (lv_indev.c, indev_gesture()). Every
+  // object created with a parent has that flag, so upstream the climb ran
+  // clean past every app node to the parent-less LVGL screen and a JSON-UI
+  // `gesture` event never fired at all. Our runtime clears the flag on the
+  // node that declares the gesture (#220, the event.cpp overlay), which is
+  // what makes stopping at that node the faithful model here.
   function gestureAncestor(node) {
     let n = node;
     while (n) {
@@ -381,16 +389,28 @@ DomRenderer.prototype.render = function () {
     if (dist < TAP_DIST) {
       const node = pd.node || topNodeAt(e.clientX, e.clientY);
       if (node) { fireEffects(node, "clicked"); fireEffects(node, "released"); }
-    } else if (dist >= SWIPE_DIST) {
-      const anchor = gestureAncestor(pd.node) || gestureAncestor(topNodeAt(e.clientX, e.clientY));
-      if (anchor) {
-        const horiz = Math.abs(dx) >= Math.abs(dy);
-        const direction = horiz ? (dx < 0 ? "left" : "right") : (dy < 0 ? "up" : "down");
-        const payload = { direction, distance: Math.round(dist), ms: dt };
-        const gestureEv = anchor.events.find((e2) => e2.type === "gesture");
-        log("[gesture] swipe " + JSON.stringify(payload) + " -> " + gestureEv.action +
-            " (sanity-check against the app's own nav-cooldown, e.g. xviewer's 350ms)");
-        shim.emit(gestureEv.action, payload);
+    } else {
+      // A DRAG still releases. LVGL sends LV_EVENT_RELEASED to the object
+      // that took the press whether or not the finger stayed inside it -- the
+      // press is only lost to a scroll container. Emitting nothing here made
+      // the harness kinder than the board: a drag over a half-panel tap zone
+      // fired its action twice on the glass (pressed + released) and once
+      // here, which is why "one drag is one card" passed in the simulator and
+      // stepped three times on the panel (#220). CLICKED is NOT emitted --
+      // LVGL only clicks when the release lands back inside.
+      if (pd.node) { fireEffects(pd.node, "released"); }
+      if (dist >= SWIPE_DIST) {
+        const anchor = gestureAncestor(pd.node) || gestureAncestor(topNodeAt(e.clientX, e.clientY));
+        if (anchor) {
+          const horiz = Math.abs(dx) >= Math.abs(dy);
+          const direction = horiz ? (dx < 0 ? "left" : "right") : (dy < 0 ? "up" : "down");
+          const payload = { direction, distance: Math.round(dist), ms: dt };
+          const gestureEv = anchor.events.find((e2) => e2.type === "gesture");
+          // Exactly one per finger-down/up: LVGL latches
+          // indev->pointer.gesture_sent on the first gesture of a press.
+          log("[gesture] swipe " + JSON.stringify(payload) + " -> " + gestureEv.action);
+          shim.emit(gestureEv.action, payload);
+        }
       }
     }
     pd = null;

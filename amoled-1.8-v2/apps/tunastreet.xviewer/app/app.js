@@ -2,9 +2,14 @@
  * X Viewer - ESP-Brookesia v0.8 JavaScript runtime app (issue #183, #198).
  *
  * One post card at a time on the 368x448 AMOLED, fed by the LAN backend
- * (http://192.168.1.121:8091). Swipe left/right (plus tap-to-navigate on the
- * left/right halves of the media card, a guaranteed-path fallback) to move
- * through posts, tap the heart to like/unlike with optimistic toggle.
+ * (http://192.168.1.121:8091). Swipe left/right to move through posts, tap
+ * the heart to like/unlike with optimistic toggle.
+ *
+ * The media card carries no tap targets any more (#220). The half-card
+ * prev/next zones sat exactly where the finger drags: a clickable object
+ * under the finger takes the press, so the swipe left through the zone, and
+ * the zone then stepped in whichever direction the drag STARTED. LIKE is the
+ * only tap target left and it lives in the bottom bar, clear of the drag.
  *
  * #198 rebuilt res/screens/home.json on the panelkit design system
  * (uikit/gen_xviewer_screen.py in DesktopShare's files/xviewer/) -- bigger
@@ -34,7 +39,6 @@
     var FEED_REFRESH_MS = 60000;
     var RETRY_MS = 10000;
     var MAX_TEXT_CHARS = 420;
-    var NAV_COOLDOWN_MS = 350;  // one continuous drag emits many gesture events
     var IMG_SLOTS = 3; // at most 3 JPEGs on flash, rotating fixed names
     var COLOR_MUTED = "#71767b";
     var COLOR_LIKED = "#f91880";
@@ -48,7 +52,6 @@
     var slotCursor = 0;
     var shownSlot = -1;         // slot whose file the image view currently displays
     var likeInFlight = false;
-    var lastNavMs = 0;          // gesture debounce clock (Date.now deltas)
     var feedInFlight = false;
     var refreshTimerId = null;
     var retryTimerId = null;
@@ -233,45 +236,18 @@
     }
 
     /**
-     * True at most once per cooldown window. Guards every navigation, tap and
-     * swipe alike: a tap target fires its action on BOTH `pressed` and
-     * `released` (panelkit's deliberate belt-and-braces, since a lone
-     * `released` can be swallowed), so an undebounced tap moved two cards at
-     * once -- and a single drag emits a whole burst of gesture events.
-     */
-    function navAllowed() {
-        var t = Date.now();
-        // t < lastNavMs = clock stepped backward (SNTP); never lock nav out.
-        if (t < lastNavMs || t - lastNavMs >= NAV_COOLDOWN_MS) {
-            lastNavMs = t;
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * True at most once per continuous drag -- the swipe half of the guard.
+     * No navigation debounce, on purpose (#220).
      *
-     * Shares lastNavMs with navAllowed() ON PURPOSE. One finger movement across
-     * the card produces BOTH kinds of event: the prev/next tap zones cover the
-     * halves of the media card and fire on `pressed` AND `released`, and the
-     * touch layer emits gesture events for as long as the finger moves. Give
-     * swipes their own clock and those become two independent budgets, so one
-     * swipe scores once as a tap and again as a gesture -- which is exactly how
-     * a "fix" for over-swiping turned 3 cards per drag into 6.
-     *
-     * The difference from navAllowed() is not the clock, it is the stamping:
-     * navAllowed() is leading-edge and stamps only when it lets something
-     * through, which is right for a tap (two events, ~0 ms apart). This stamps
-     * on EVERY gesture event, accepted or rejected, so a long drag keeps pushing
-     * the window out and settles to exactly one step however slow it is.
+     * The old guards existed because one drag scored several cards. That was
+     * never "the touch layer emits many gesture events" -- LVGL latches
+     * `indev->pointer.gesture_sent` on the first gesture of a press and sends
+     * exactly one per finger-down/up (lv_indev.c, indev_gesture()). The extra
+     * cards came from the prev/next tap zones firing on `pressed` AND on
+     * `released` under the same drag. Those zones are gone, so one drag is one
+     * gesture is one card, and a cooldown would only swallow the second of two
+     * quick swipes. LIKE keeps its own guard (likeInFlight), which is what a
+     * real tap target needs against the deliberate pressed+released pair.
      */
-    function gestureAllowed() {
-        var t = Date.now();
-        var gap = t - lastNavMs;
-        lastNavMs = t;                  // ALWAYS extend, accepted or not
-        return gap < 0 || gap >= NAV_COOLDOWN_MS;
-    }
 
     // ---------------------------------------------------------------- HTTP
     /**
@@ -607,7 +583,7 @@
                 }
 
                 // GUI actions (declared in res/screens/home.json).
-                var actions = ["xviewer.gesture", "xviewer.like", "xviewer.prev", "xviewer.next"];
+                var actions = ["xviewer.gesture", "xviewer.like"];
                 for (var j = 0; j < actions.length; j++) {
                     var subResult = svcCall("SystemGui", "SubscribeAction", { Action: actions[j] });
                     if (!subResult.success) {
@@ -642,18 +618,8 @@
                     // gesture (handled at the display-port layer) is never
                     // interfered with.
                     if (payload.direction === "left" || payload.direction === "right") {
-                        // Debounce: the touch layer emits multiple gesture
-                        // events per continuous drag; only the first within
-                        // the cooldown window navigates (same guard idea as
-                        // likeInFlight).
-                        if (gestureAllowed()) {
-                            goTo(payload.direction === "left" ? idx + 1 : idx - 1);
-                        }
+                        goTo(payload.direction === "left" ? idx + 1 : idx - 1);
                     }
-                } else if (action === "xviewer.next") {
-                    if (navAllowed()) { goTo(idx + 1); }
-                } else if (action === "xviewer.prev") {
-                    if (navAllowed()) { goTo(idx - 1); }
                 } else if (action === "xviewer.like") {
                     toggleLike();
                 }

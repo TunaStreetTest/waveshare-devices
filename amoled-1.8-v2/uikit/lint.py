@@ -15,7 +15,7 @@ panelkit.py imports this module and calls lint_tree() on every screen it
 builds (see the bottom of this file), so a screen assembled purely from
 panelkit primitives is linted the moment it's built, not just at flash time.
 
-Rules R1-R10, the same set and the same numbers as the pre-flash check
+Rules R1-R11, the same set and the same numbers as the pre-flash check
 (tools/simulator/lint.js), both reading their thresholds from
 tokens.json. lint.js additionally has R0, a *dynamic* reachability check
 that needs a booted app -- that one has no structural twin here.
@@ -45,6 +45,7 @@ RULES = {
     "R8": "a fontSize that is not on the compiled Montserrat ladder",
     "R9": "a label box shorter than the font's real line height",
     "R10": "edge-anchored text sitting inside the glass's rounded corner",
+    "R11": "trap 5 -- a big tap target inside a swipe surface",
 }
 
 FLEX_LAYOUT_TYPES = ("flex", "grid")
@@ -295,6 +296,53 @@ def lint_tree(root, file_label="screen"):
                    "right-aligned text ends at x=%d but the rounded corner "
                    "needs it to end by x<=%d this close to the edge (%dpx). "
                    "Move it down or in." % (x + w, tk.W - need, d))
+
+    # R11 -- trap 5: a big tap target inside a swipe surface.
+    #
+    # LVGL sends exactly ONE gesture per finger-down/up (indev->pointer
+    # .gesture_sent latches after the first), so a swipe is never the thing
+    # that fires twice. A tap target under the same finger is: panelkit emits
+    # its action on `pressed` AND on `released` on purpose. So one drag across
+    # a half-panel nav zone scored three navigations -- two from the zone, one
+    # from the gesture -- and the two from the zone went in whichever
+    # direction the drag STARTED, not the way it went. That is the "tap and
+    # swipe collision" of #220.
+    #
+    # A small control inside a swipe surface is fine (a toolbar button is not
+    # where a thumb starts a drag). The line is traps.gesture_target_ratio of
+    # the surface's width AND height -- past that the "control" IS the drag
+    # surface.
+    if tk.FORBID_TARGET_OVER_GESTURE and tk.GESTURE_TARGET_RATIO:
+        ratio = tk.GESTURE_TARGET_RATIO
+
+        def has_gesture(node):
+            return any(e.get("type") == "gesture" for e in (node.get("events") or []))
+
+        def is_tap_target(node):
+            return any(e.get("type") in TAP_EVENT_TYPES for e in (node.get("events") or []))
+
+        def visit_surface(node, path, surface):
+            if has_gesture(node):
+                # The screen root has no placement of its own -- it IS the panel.
+                surface = (path + "/" + node.get("id", "?"),
+                           geo.get(id(node)) or (0, 0, tk.W, tk.H))
+            elif surface is not None and is_tap_target(node):
+                box = geo.get(id(node))
+                if box is not None:
+                    _, _, sw, sh = surface[1]
+                    _, _, w, h = box
+                    if sw > 0 and sh > 0 and w >= sw * ratio and h >= sh * ratio:
+                        report(node, path, "R11",
+                               "%dx%d tap target covers %d%%x%d%% of the swipe "
+                               "surface %s -- a drag starting on it fires this "
+                               "action on pressed AND released as well as the "
+                               "gesture. Make it small or drop the tap."
+                               % (w, h, round(100.0 * w / sw), round(100.0 * h / sh),
+                                  surface[0]))
+            for i, child in enumerate(node.get("children", []) or []):
+                visit_surface(child, path + "/" + child.get("id", str(i)), surface)
+
+        visit_surface(root, "", None)
 
     return violations
 

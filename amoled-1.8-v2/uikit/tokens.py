@@ -79,6 +79,8 @@ CONTAINER_SCROLLABLE = TRAPS["container_scrollable"]    # False
 CONTAINER_PRESS_LOCK = TRAPS["container_press_lock"]    # True
 TAP_EVENTS = tuple(TRAPS["tap_events"])                  # ("pressed", "released")
 FORBID_REQUIRE_VALID_PRESS = TRAPS["forbid_require_valid_press"]
+FORBID_TARGET_OVER_GESTURE = TRAPS["forbid_target_over_gesture"]
+GESTURE_TARGET_RATIO = TRAPS["gesture_target_ratio"]     # 0.33 of a swipe surface
 
 
 def band(role):
