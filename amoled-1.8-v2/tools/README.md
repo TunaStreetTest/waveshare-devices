@@ -45,9 +45,20 @@ python -m esptool --chip esp32s3 --port COM8 -b 460800 write-flash 0xaa1000 litt
 ```
 
 Offsets come from `partitions_16m.csv` (littlefs_data = 5000K @ `0xaa1000`).
-Apps not re-staged in `examples/system/super/littlefs/apps/` **vanish** on a
-storage flash. Ask before every flash — the board hard-resets after and the
-EFM agent drops for ~15 s.
+Ask before every flash — the board hard-resets after and the EFM agent drops
+for ~15 s.
+
+**Anything not in `examples/system/super/littlefs/apps/` vanishes on a storage
+flash**, and that tree is rebuilt by the build itself. `platform/setup.sh`
+stages all four `tunastreet.*` packages straight out of `../apps/` through
+upstream's `brookesia_stage_runtime_app_package` hook (#216), so a clean build
+produces a complete image. Do **not** hand-copy an app into that tree instead:
+the upstream hook wipes the whole apps stage root once per CMake configure and
+then re-copies only the registered packages, so a hand-placed app survives
+exactly until the next configure and then silently disappears — which is how
+the board once ended up running a build older than the repo. To add a fifth
+app, add its id to `TUNASTREET_APP_PACKAGES` in
+`platform/overlay/examples/system/super/main/CMakeLists.txt`.
 
 Recovery image: `ESP32-S3-Touch-AMOLED-1.8-V2-FactoryXiaozhi_260601.bin`
 (16 MB whole-flash write at `0x0`).
