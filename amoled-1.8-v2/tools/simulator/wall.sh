@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# The panel wall: one simulator window per AMOLED app, tiled across the desktop.
+# The panel wall: one simulator window per AMOLED app, in a 2x2 block on the
+# right of the screen with the session terminal beside it on the left.
 #
 #   ./wall.sh start     bring the whole wall up (idempotent -- skips what's already running)
 #   ./wall.sh stop      close every window and server it started
@@ -21,16 +22,27 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RUN="${PANEL_WALL_RUN:-/tmp/panel-wall}"
 CHROMIUM="${CHROMIUM:-/snap/bin/chromium}"
 
-# name | sim port | backend to proxy | debug port | window x | extra query
+# Layout: a 2x2 block of panels on the right of the screen, leaving the left
+# half for the session terminal -- the arrangement Steven works this device in,
+# so the four panels and the conversation are readable at once. Quadrants are
+# agent / tminus over racing / xviewer.
+#
+# Origin and cell size are env-overridable for a different screen:
+#   WALL_X0=1110 WALL_Y0=4 WIN_W=400 WIN_H=497 ./wall.sh tile
+X0="${WALL_X0:-1110}"      # left edge of the block
+Y0="${WALL_Y0:-4}"         # top edge of the block
+WIN_W="${WIN_W:-400}"      # 368 px of glass plus Chromium's frame
+WIN_H="${WIN_H:-497}"      # 448 px of glass plus frame and title bar
+COL=$((X0 + WIN_W + 2))
+ROW=$((Y0 + WIN_H + 1))
+
+# name | sim port | backend to proxy | debug port | window x:y | extra query
 WALL=(
-  "racing|8097|127.0.0.1:8093|9341|40|&fixture=1&drive=examples/racing-bot.js&claude=1"
-  "xviewer|8095|127.0.0.1:8091|9342|440|"
-  "agent|8098|127.0.0.1:8094|9343|840|"
-  "tminus|8096|127.0.0.1:8092|9344|1240|"
+  "agent|8098|127.0.0.1:8094|9343|$X0:$Y0|"
+  "tminus|8096|127.0.0.1:8092|9344|$COL:$Y0|"
+  "racing|8097|127.0.0.1:8093|9341|$X0:$ROW|&fixture=1&drive=examples/racing-bot.js&claude=1"
+  "xviewer|8095|127.0.0.1:8091|9342|$COL:$ROW|"
 )
-WIN_W=388
-WIN_H=468
-WIN_Y=70
 
 mkdir -p "$RUN"
 
@@ -79,9 +91,10 @@ start_windows() {
 # once the window exists. Node 24 speaks WebSocket natively -- no puppeteer.
 tile() {
   for row in "${WALL[@]}"; do
-    local name dbg x
-    name=$(field "$row" 1); dbg=$(field "$row" 4); x=$(field "$row" 5)
-    PW_DBG="$dbg" PW_X="$x" PW_W="$WIN_W" PW_H="$WIN_H" PW_Y="$WIN_Y" \
+    local name dbg xy x y
+    name=$(field "$row" 1); dbg=$(field "$row" 4); xy=$(field "$row" 5)
+    x="${xy%%:*}"; y="${xy##*:}"
+    PW_DBG="$dbg" PW_X="$x" PW_W="$WIN_W" PW_H="$WIN_H" PW_Y="$y" \
       node -e '
         const http = require("http");
         const dbg = process.env.PW_DBG;
@@ -109,7 +122,7 @@ tile() {
             ws.close();
           });
         }).on("error", () => {});
-      ' 2>/dev/null && echo "  tiled $name at x=$x"
+      ' 2>/dev/null && echo "  tiled $name at ${x},${y}"
   done
 }
 

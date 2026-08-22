@@ -31,21 +31,27 @@ loaded by path via `--drive` / `?drive=`, never hardcoded in the core.
 
 ## The panel wall — every app on screen at once
 
-`./wall.sh start` brings up one window per app, tiled left to right, each with
-its own `serve.js` proxying to that app's real LAN backend so the panels show
-live data:
+`./wall.sh start` brings up one window per app, each with its own `serve.js`
+proxying to that app's real LAN backend so the panels show live data, arranged
+as a **2×2 block on the right of the screen** — the session terminal sits down
+the left, so the conversation and all four panels are readable at once:
 
-| App | sim port | proxies to | window x |
+| App | sim port | proxies to | window x,y |
 |---|---|---|---|
-| racing | 8097 | `:8093` (fixture + autopilot, see below) | 40 |
-| xviewer | 8095 | `:8091` | 440 |
-| agent | 8098 | `:8094` | 840 |
-| tminus | 8096 | `:8092` | 1240 |
+| agent | 8098 | `:8094` | 1110, 4 |
+| tminus | 8096 | `:8092` | 1512, 4 |
+| racing | 8097 | `:8093` (fixture + autopilot, see below) | 1110, 502 |
+| xviewer | 8095 | `:8091` | 1512, 502 |
 
-Windows are 388×468 at y=70 — the 368×448 glass plus its shadow ring, nothing
-else. `start` is idempotent (it skips whatever is already up), `stop` closes
-what it started, `status` prints the current state, and `tile` re-applies
+Cells are 400×497 — the 368×448 glass plus Chromium's frame and title bar. On a
+different screen, override the block: `WALL_X0=… WALL_Y0=… WIN_W=… WIN_H=…
+./wall.sh tile`. `start` is idempotent (it skips whatever is already up), `stop`
+closes what it started, `status` prints the current state, and `tile` re-applies
 positions without restarting anything.
+
+**A window keeps serving the page it loaded.** After editing a screen generator
+or an `app.js`, hard-reload the windows (or `stop`/`start` the wall) — otherwise
+you are reviewing a build from several versions ago.
 
 **Racing runs on its fixture, deliberately.** The autopilot against the live
 backend would POST real telemetry into the pipeline and land bot scores on the
