@@ -124,7 +124,14 @@ public:
             .localized_names = {{"en", APP_NAME}},
             .version = "0.1.0",
             .kind = system::core::AppKind::Native,
-            .visible = true,
+            // Was true, which put a SECOND "Agent" entry in the launcher: this
+            // native tile (drawn as a text-fallback square, since it ships no
+            // icon) sitting next to the real tunastreet.agent runtime app. Two
+            // tiles with the same name, one of them a stub -- "remove the old
+            // agent". The tile keeps working as a debug surface for anything
+            // that needs the in-process microfi:: symbols; it just no longer
+            // claims a slot on the home screen.
+            .visible = false,
             .preload_dom = false,
             // No image icon: with icon_id and icon_path both empty the core
             // skips icon-resource registration and the super launcher renders
