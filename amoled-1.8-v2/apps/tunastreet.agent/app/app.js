@@ -223,7 +223,7 @@
 
         setText("/mx/mx_uptime_v", tightDur(snap.uptime_s));
         setText("/mx/mx_mem_v", mib(snap.mem_bytes));
-        setText("/mx/mx_cpu_v", String(snap.cpu_pct));
+        setText("/mx/mx_beats_v", String(snap.heartbeat_count || 0));
         setText("/mx/mx_queue_v", String(snap.flowfile_queued));
 
         setText("/foot/foot_id", snap.agent_id + "  " + snap.agent_type + " " + snap.agent_version);

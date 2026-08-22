@@ -170,6 +170,9 @@
                             "layout": {
                                 "type": "none"
                             },
+                            "commonProps": {
+                                "clickable": false
+                            },
                             "imageProps": {
                                 "src": "${image.car_corolla}",
                                 "innerAlign": "contain"
@@ -216,7 +219,7 @@
                                 "textAlign": "left"
                             },
                             "labelProps": {
-                                "text": "reliable \u00b7 steady"
+                                "text": "reliable - steady"
                             }
                         }
                     ],
@@ -281,6 +284,9 @@
                             "layout": {
                                 "type": "none"
                             },
+                            "commonProps": {
+                                "clickable": false
+                            },
                             "imageProps": {
                                 "src": "${image.car_porsche}",
                                 "innerAlign": "contain"
@@ -327,7 +333,7 @@
                                 "textAlign": "left"
                             },
                             "labelProps": {
-                                "text": "speed \u00b7 sharp"
+                                "text": "speed - sharp"
                             }
                         }
                     ],
@@ -606,7 +612,7 @@
                         "textAlign": "left"
                     },
                     "labelProps": {
-                        "text": "Lv.1 \u00b7 60 km/h"
+                        "text": "Lv.1 - 60 km/h"
                     }
                 },
                 {

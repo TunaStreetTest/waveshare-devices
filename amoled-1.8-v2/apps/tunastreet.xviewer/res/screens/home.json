@@ -211,6 +211,9 @@
                     "layout": {
                         "type": "none"
                     },
+                    "commonProps": {
+                        "clickable": false
+                    },
                     "imageProps": {
                         "src": "",
                         "innerAlign": "contain"
@@ -238,7 +241,7 @@
                         "textAlign": "center"
                     },
                     "labelProps": {
-                        "text": "\u2039"
+                        "text": "<"
                     }
                 },
                 {
@@ -260,7 +263,7 @@
                         "textAlign": "center"
                     },
                     "labelProps": {
-                        "text": "\u203a"
+                        "text": ">"
                     }
                 }
             ]
@@ -347,6 +350,9 @@
                             },
                             "layout": {
                                 "type": "none"
+                            },
+                            "commonProps": {
+                                "clickable": false
                             },
                             "imageProps": {
                                 "src": "${image.heart_off}",

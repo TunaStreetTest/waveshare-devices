@@ -45,15 +45,13 @@
     var idx = 0;
     var navSeq = 0;             // bumps on every render; stale downloads ignored
     var pendingHttp = {};       // request_id (string) -> callback(response)
-    var slotOwner = [null, null, null]; // post id whose JPEG currently occupies slot
+    var slotOwner = [null, null, null]; // image URL whose JPEG currently occupies slot
     var slotCursor = 0;
     var shownSlot = -1;         // slot whose file the image view currently displays
     var likeInFlight = false;
     var lastNavMs = 0;          // gesture debounce clock (Date.now deltas)
     var feedInFlight = false;
     var forceFirstOnFeed = false; // CLEAR: jump to card 0 instead of keeping place
-    var profileReady = false;   // profile card downloaded to its own cache slot
-    var profileInFlight = false;
     var refreshTimerId = null;
     var retryTimerId = null;
     var httpServiceHandle = null;
@@ -128,6 +126,23 @@
 
     function setStatus(msg) {
         setText("/topbar/status", msg || "");
+    }
+
+    /**
+     * True at most once per cooldown window. Guards every navigation, tap and
+     * swipe alike: a tap target fires its action on BOTH `pressed` and
+     * `released` (panelkit's deliberate belt-and-braces, since a lone
+     * `released` can be swallowed), so an undebounced tap moved two cards at
+     * once -- and a single drag emits a whole burst of gesture events.
+     */
+    function navAllowed() {
+        var t = Date.now();
+        // t < lastNavMs = clock stepped backward (SNTP); never lock nav out.
+        if (t < lastNavMs || t - lastNavMs >= NAV_COOLDOWN_MS) {
+            lastNavMs = t;
+            return true;
+        }
+        return false;
     }
 
     // ---------------------------------------------------------------- HTTP
@@ -236,9 +251,6 @@
         }
         var currentId = posts[idx] ? posts[idx].id : null;
         posts = list;
-        if (!Array.isArray(body) && body.profile_img && !profileReady && !profileInFlight) {
-            fetchProfileCard(String(body.profile_img));
-        }
         if (forceFirstOnFeed) {
             // CLEAR: always land on the first card, don't try to keep place.
             forceFirstOnFeed = false;
@@ -312,64 +324,6 @@
         return BACKEND + (s.charAt(0) === "/" ? s : "/" + s);
     }
 
-    // Most posts carry no media, and the 368x220 card is the biggest thing on
-    // the panel - left black it throws away half the glass. A text post shows
-    // the account's own profile card instead (composed host-side, fetched once
-    // and kept in its own cache slot). If that isn't available, a Tuna Street
-    // tile stands in, picked by post id so consecutive text posts differ. The
-    // card is never empty.
-    var TILES = ["tile_a", "tile_b", "tile_c"];
-    var PROFILE_FILE = "img_profile.jpg";
-
-    function fetchProfileCard(pathOrUrl) {
-        profileInFlight = true;
-        var url = (pathOrUrl.indexOf("http") === 0)
-            ? pathOrUrl
-            : BACKEND + (pathOrUrl.charAt(0) === "/" ? pathOrUrl : "/" + pathOrUrl);
-        httpRequest({
-            url: url,
-            method: "GET",
-            timeout_ms: 15000,
-            download_path: cacheMarker(PROFILE_FILE),
-            max_file_size: 262144
-        }, function (response) {
-            profileInFlight = false;
-            if (!response || (response.error && response.error !== "Ok") || response.status_code !== 200) {
-                log("profile card unavailable:", response ? (response.error_message || response.error) : "no response");
-                return;
-            }
-            profileReady = true;
-            log("profile card cached");
-            // A text post already on screen is showing a generated tile;
-            // swap it for the real thing now that it's here.
-            var p = posts[idx];
-            if (p && !imageUrlFor(p)) {
-                showTile(p);
-            }
-        });
-    }
-
-    function tileFor(p) {
-        var id = String((p && p.id) || "");
-        var sum = 0;
-        for (var i = 0; i < id.length; i++) {
-            sum += id.charCodeAt(i);
-        }
-        return TILES[sum % TILES.length];
-    }
-
-    function showTile(p) {
-        var ok = false;
-        if (profileReady) {
-            ok = setViewSrc("/media/card_img", cacheMarker(PROFILE_FILE)).success;
-        }
-        if (!ok) {
-            setViewSrc("/media/card_img", tileFor(p));
-        }
-        setBinding("/media/card_img", "imgHidden", "false");
-        shownSlot = -1;
-    }
-
     function hideImage() {
         setBinding("/media/card_img", "imgHidden", "true");
     }
@@ -390,10 +344,10 @@
         }
     }
 
-    function pickSlot(postId) {
+    function pickSlot(url) {
         for (var i = 0; i < IMG_SLOTS; i++) {
-            if (slotOwner[i] === postId) {
-                return i; // JPEG already on flash for this post
+            if (slotOwner[i] === url) {
+                return i; // JPEG already on flash for this URL
             }
         }
         // never overwrite the file the image view is currently showing
@@ -409,12 +363,12 @@
     function renderImage(p) {
         var url = imageUrlFor(p);
         if (!url) {
-            showTile(p);
+            hideImage();
             return;
         }
         var cachedSlot = -1;
         for (var i = 0; i < IMG_SLOTS; i++) {
-            if (slotOwner[i] === p.id) {
+            if (slotOwner[i] === url) {
                 cachedSlot = i;
                 break;
             }
@@ -423,8 +377,10 @@
             showImageFromSlot(cachedSlot);
             return;
         }
-        showTile(p); // tile stands in while the picture downloads
-        var slot = pickSlot(p.id);
+        // Keyed by URL, not post id: every text post carries the same avatar
+        // URL, so all of them share one cached slot and one download.
+        hideImage(); // black for the moment the download takes
+        var slot = pickSlot(url);
         var seqAtRequest = navSeq;
         slotOwner[slot] = null; // file about to be overwritten
         httpRequest({
@@ -437,16 +393,16 @@
             if (navSeq !== seqAtRequest) {
                 // user moved on; keep the bytes, remember the owner for reuse
                 if (response && response.status_code === 200 && (!response.error || response.error === "Ok")) {
-                    slotOwner[slot] = p.id;
+                    slotOwner[slot] = url;
                 }
                 return;
             }
             if (!response || (response.error && response.error !== "Ok") || response.status_code !== 200) {
                 log("image fetch failed for", p.id, response ? (response.error_message || response.error) : "no response");
-                showTile(p);   // the tile stays rather than dropping to a black card
+                hideImage();
                 return;
             }
-            slotOwner[slot] = p.id;
+            slotOwner[slot] = url;
             showImageFromSlot(slot);
         });
     }
@@ -582,18 +538,15 @@
                         // Debounce: the touch layer emits multiple gesture
                         // events per continuous drag; only the first within
                         // the cooldown window navigates (same guard idea as
-                        // likeInFlight). Taps (next/prev/like) stay immediate.
-                        var t = Date.now();
-                        // t < lastNavMs = clock stepped backward (SNTP); never lock nav
-                        if (t < lastNavMs || t - lastNavMs >= NAV_COOLDOWN_MS) {
-                            lastNavMs = t;
+                        // likeInFlight).
+                        if (navAllowed()) {
                             goTo(payload.direction === "left" ? idx + 1 : idx - 1);
                         }
                     }
                 } else if (action === "xviewer.next") {
-                    goTo(idx + 1);
+                    if (navAllowed()) { goTo(idx + 1); }
                 } else if (action === "xviewer.prev") {
-                    goTo(idx - 1);
+                    if (navAllowed()) { goTo(idx - 1); }
                 } else if (action === "xviewer.like") {
                     toggleLike();
                 } else if (action === "xviewer.clear") {

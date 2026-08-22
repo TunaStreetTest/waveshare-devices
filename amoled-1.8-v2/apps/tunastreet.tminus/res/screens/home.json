@@ -16,6 +16,96 @@
     "children": [
         {
             "type": "container",
+            "id": "nav_prev",
+            "placement": {
+                "mode": "absolute",
+                "x": 0,
+                "y": 206,
+                "width": 184,
+                "height": 174
+            },
+            "layout": {
+                "type": "none"
+            },
+            "style": {
+                "bgColor": "#000000",
+                "padding": 0,
+                "radius": 0
+            },
+            "commonProps": {
+                "scrollable": false,
+                "pressLock": true,
+                "clickable": true
+            },
+            "children": [],
+            "events": [
+                {
+                    "type": "pressed",
+                    "effects": [
+                        {
+                            "type": "emitAction",
+                            "action": "tminus.prev"
+                        }
+                    ]
+                },
+                {
+                    "type": "released",
+                    "effects": [
+                        {
+                            "type": "emitAction",
+                            "action": "tminus.prev"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "container",
+            "id": "nav_next",
+            "placement": {
+                "mode": "absolute",
+                "x": 184,
+                "y": 206,
+                "width": 184,
+                "height": 174
+            },
+            "layout": {
+                "type": "none"
+            },
+            "style": {
+                "bgColor": "#000000",
+                "padding": 0,
+                "radius": 0
+            },
+            "commonProps": {
+                "scrollable": false,
+                "pressLock": true,
+                "clickable": true
+            },
+            "children": [],
+            "events": [
+                {
+                    "type": "pressed",
+                    "effects": [
+                        {
+                            "type": "emitAction",
+                            "action": "tminus.next"
+                        }
+                    ]
+                },
+                {
+                    "type": "released",
+                    "effects": [
+                        {
+                            "type": "emitAction",
+                            "action": "tminus.next"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "container",
             "id": "topbar",
             "placement": {
                 "mode": "absolute",
@@ -40,59 +130,12 @@
             "children": [
                 {
                     "type": "label",
-                    "id": "nav_prev",
-                    "placement": {
-                        "mode": "absolute",
-                        "x": 0,
-                        "y": 0,
-                        "width": 64,
-                        "height": 44
-                    },
-                    "layout": {
-                        "type": "none"
-                    },
-                    "style": {
-                        "textColor": "#888888",
-                        "fontSize": 28,
-                        "textAlign": "center"
-                    },
-                    "labelProps": {
-                        "text": "\u00ab"
-                    },
-                    "commonProps": {
-                        "clickable": true,
-                        "scrollable": false,
-                        "pressLock": true
-                    },
-                    "events": [
-                        {
-                            "type": "pressed",
-                            "effects": [
-                                {
-                                    "type": "emitAction",
-                                    "action": "tminus.prev"
-                                }
-                            ]
-                        },
-                        {
-                            "type": "released",
-                            "effects": [
-                                {
-                                    "type": "emitAction",
-                                    "action": "tminus.prev"
-                                }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    "type": "label",
                     "id": "brand",
                     "placement": {
                         "mode": "absolute",
-                        "x": 64,
+                        "x": 0,
                         "y": 10,
-                        "width": 240,
+                        "width": 368,
                         "height": 26
                     },
                     "layout": {
@@ -106,53 +149,6 @@
                     "labelProps": {
                         "text": "T-MINUS"
                     }
-                },
-                {
-                    "type": "label",
-                    "id": "nav_next",
-                    "placement": {
-                        "mode": "absolute",
-                        "x": 304,
-                        "y": 0,
-                        "width": 64,
-                        "height": 44
-                    },
-                    "layout": {
-                        "type": "none"
-                    },
-                    "style": {
-                        "textColor": "#888888",
-                        "fontSize": 28,
-                        "textAlign": "center"
-                    },
-                    "labelProps": {
-                        "text": "\u00bb"
-                    },
-                    "commonProps": {
-                        "clickable": true,
-                        "scrollable": false,
-                        "pressLock": true
-                    },
-                    "events": [
-                        {
-                            "type": "pressed",
-                            "effects": [
-                                {
-                                    "type": "emitAction",
-                                    "action": "tminus.next"
-                                }
-                            ]
-                        },
-                        {
-                            "type": "released",
-                            "effects": [
-                                {
-                                    "type": "emitAction",
-                                    "action": "tminus.next"
-                                }
-                            ]
-                        }
-                    ]
                 }
             ]
         },
@@ -261,9 +257,56 @@
             "layout": {
                 "type": "none"
             },
+            "commonProps": {
+                "clickable": false
+            },
             "imageProps": {
                 "src": "${image.launch}",
                 "innerAlign": "contain"
+            }
+        },
+        {
+            "type": "label",
+            "id": "nav_prev_g",
+            "placement": {
+                "mode": "absolute",
+                "x": 8,
+                "y": 271,
+                "width": 44,
+                "height": 44
+            },
+            "layout": {
+                "type": "none"
+            },
+            "style": {
+                "textColor": "#888888",
+                "fontSize": 40,
+                "textAlign": "center"
+            },
+            "labelProps": {
+                "text": "<"
+            }
+        },
+        {
+            "type": "label",
+            "id": "nav_next_g",
+            "placement": {
+                "mode": "absolute",
+                "x": 316,
+                "y": 271,
+                "width": 44,
+                "height": 44
+            },
+            "layout": {
+                "type": "none"
+            },
+            "style": {
+                "textColor": "#888888",
+                "fontSize": 40,
+                "textAlign": "center"
+            },
+            "labelProps": {
+                "text": ">"
             }
         },
         {

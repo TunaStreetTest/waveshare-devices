@@ -2,8 +2,9 @@
  * T-MINUS - ESP-Brookesia v0.8 JavaScript runtime app (issue #184).
  *
  * True-black launch clock on the 368x448 AMOLED. T-0 from the LAN backend
- * (http://192.168.1.121:8092), Launch Library 2. Tap / » next launch, «
- * previous. Vertical swipe stays home.
+ * (http://192.168.1.121:8092), Launch Library 2. Tap the right half of
+ * the middle band for the next launch, the left half for the previous one;
+ * swipe left/right does the same. Vertical swipe stays home.
  *
  * Same sandbox rules as tunastreet.xviewer: plain global script (QuickJS,
  * JS_EVAL_TYPE_GLOBAL), no fetch/XHR/setTimeout; HTTP via the "Http"
@@ -23,11 +24,17 @@
     var HTTP_TIMEOUT_MS = 20000;
     var AMBER = "#ffb000";
     var HOLD = "#ff5a1f";
+    // The touch layer emits several gesture events per continuous drag, so an
+    // undebounced handler steps three or four launches on one swipe -- which
+    // reads as "the swipe is broken" rather than "the swipe is too eager".
+    // Same 350 ms cooldown the X viewer landed on in #193. Taps are immediate.
+    var NAV_COOLDOWN_MS = 350;
 
     var event = null;
     var bootUnix = 0;
     var ticks = 0;
     var navSeq = 0;
+    var lastNavMs = 0;
     var pendingHttp = {};
     var inFlight = false;
     var retryTimerId = null;
@@ -79,6 +86,23 @@
 
     function setStatus(msg) {
         setText("/status", msg || "");
+    }
+
+    /**
+     * True at most once per cooldown window -- for taps as well as swipes. A
+     * tap target emits its action on BOTH `pressed` and `released` (panelkit
+     * fires both on purpose, since a lone `released` can be swallowed), so
+     * one tap on a nav zone would otherwise step two launches.
+     */
+    function navAllowed() {
+        var t = Date.now();
+        // t < lastNavMs means the clock stepped backward (SNTP); never let
+        // that lock navigation out.
+        if (t < lastNavMs || t - lastNavMs >= NAV_COOLDOWN_MS) {
+            lastNavMs = t;
+            return true;
+        }
+        return false;
     }
 
     function pad2(n) {
@@ -191,7 +215,7 @@
     function render() {
         if (!event) {
             setText("/vehicle", "");
-            setText("/mission", "tap »");
+            setText("/mission", "tap >");
             setText("/pad", "");
             setText("/meta", "");
             return;
@@ -199,7 +223,7 @@
         setText("/vehicle", String(event.vehicle || "").toUpperCase());
         setText("/mission", String(event.mission || ""));
         setText("/pad", String(event.pad || ""));
-        setText("/meta", String(event.status || "") + "  ·  " + (event.idx + 1) + "/" + event.count);
+        setText("/meta", String(event.status || "") + "   " + (event.idx + 1) + "/" + event.count);
         renderClock();
     }
 
@@ -364,15 +388,18 @@
                     try {
                         payload = JSON.parse(payloadJson || "{}");
                     } catch (e) { /* ignore */ }
-                    if (payload.direction === "left") {
-                        step(1);
-                    } else if (payload.direction === "right") {
-                        step(-1);
+                    // Horizontal only: vertical directions are left alone so
+                    // the system swipe-up home gesture is never interfered
+                    // with.
+                    if (payload.direction === "left" || payload.direction === "right") {
+                        if (navAllowed()) {
+                            step(payload.direction === "left" ? 1 : -1);
+                        }
                     }
                 } else if (action === "tminus.next") {
-                    step(1);
+                    if (navAllowed()) { step(1); }
                 } else if (action === "tminus.prev") {
-                    step(-1);
+                    if (navAllowed()) { step(-1); }
                 }
             } catch (e) {
                 log("on_action error:", String(e));

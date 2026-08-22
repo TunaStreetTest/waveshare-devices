@@ -286,7 +286,7 @@
         var mm = Math.floor(elapsed / 60);
         var ss = elapsed % 60;
         setText("/panel_game/g_clock", mm + ":" + (ss < 10 ? "0" : "") + ss);
-        setText("/panel_game/g_speed", "Lv." + speedLevel + " · " + baseKmh + " km/h");
+        setText("/panel_game/g_speed", "Lv." + speedLevel + " - " + baseKmh + " km/h");
         setText("/panel_game/g_mode", heroMode ? "HERO MODE" : "");
         flushBinds();
     }
@@ -441,7 +441,7 @@
         setText("/panel_over/o_rank", a.t);
         setText("/panel_over/o_sub", a.d + (heroMode ? " Survived Hero Mode." : ""));
         setText("/panel_over/o_score", String(score));
-        setText("/panel_over/o_stats", lastKmh + " km/h  ·  " + mm + ":" + (ss < 10 ? "0" : "") + ss + "  ·  " + carName());
+        setText("/panel_over/o_stats", lastKmh + " km/h   " + mm + ":" + (ss < 10 ? "0" : "") + ss + "   " + carName());
         setText("/panel_over/o_status", "sending to Kafka...");
         showPhase("over");
         fetchBoard();
