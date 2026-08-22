@@ -65,7 +65,15 @@ res/profile.json              icon + screen flow mount (AppDefault/Replace)
 res/root.json, res/flows/     asset list, single-screen flow
 res/screens/home.json         the full layout (generated: header/underline/nowbar/8 rows/status)
 res/images/launcher_icon.png  92×92, checkered flag + orange speed stripes
+res/images/obs_*.png          44×44 obstacles/villains/power-up (generated)
+res/images/car_*.png          56×74 Corolla and 911 (generated)
 ```
+
+The sprites are the browser game's own inline SVGs rasterised at panel scale, not redraws:
+`DesktopShare/files/racing/gen_racing_art.py` lifts them out of the upstream game's
+`services/game/index.html`, vendors them to `upstream_sprites.json`, then crops each to its
+ink bounds and scales it to fill its slot so the drawn shape matches the 44px hit box.
+Re-vendor after an upstream art change with `gen_racing_art.py --refresh`.
 
 Deploy: stage into `esp-brookesia/examples/system/super/littlefs/apps/` (re-stage-or-vanish
 rule) and patch `littlefs_data.bin` in place with littlefs-python — never a full littlefs
