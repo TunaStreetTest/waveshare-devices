@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2026 Steven Matison
+#
+# SPDX-License-Identifier: Apache-2.0
 """Loader for uikit/tokens.json -- the single source of truth for sizing,
-colour and trap policy on the Waveshare ESP32-S3-Touch-AMOLED-1.8 V2 (#208).
+colour and trap policy on the Waveshare ESP32-S3-Touch-AMOLED-1.8 V2.
 
 Why a loader instead of just writing these as Python literals: tokens.json has
 a second reader -- tools/simulator/lint.js, a sibling agent's JS pre-flash
@@ -20,7 +23,7 @@ W = DEVICE["width"]
 H = DEVICE["height"]
 
 TEXT = _T["text"]
-TEXT_FLOOR = TEXT["floor"]              # 16 -- hard floor, not a suggestion (#205)
+TEXT_FLOOR = TEXT["floor"]              # 16 -- absolute, applies to every role
 FONT_LADDER = tuple(TEXT["font_ladder"])  # the only sizes the board can draw
 LINE_HEIGHT = {int(k): v for k, v in TEXT["line_height"].items()}
 TEXT_BANDS = TEXT["bands"]              # role -> [min, max] fontSize
@@ -119,9 +122,25 @@ def check_size(role, size):
                ", ".join(str(r) for r in FONT_LADDER)))
 
 
+def check_line_height(size, h):
+    """Raise if a label box `h` px tall is shorter than the real line height of
+    the Montserrat face at `size`, which clips descenders.
+
+    The heights are the actual .line_height out of each lv_font_montserrat_<n>.c
+    -- ~1.1x the nominal size, not the ~1.3x a desktop CSS habit assumes. That
+    matters in both directions: guessing high condemns boxes that are fine and
+    hides the ones that are not."""
+    need = LINE_HEIGHT.get(size)
+    if need is not None and h < need:
+        raise ValueError(
+            "label box is %dpx tall but Montserrat %d has a line height of "
+            "%dpx -- descenders will be clipped (tokens.json "
+            "text.line_height)" % (h, size, need))
+
+
 def check_target_height(h):
-    """Raise if `h` is not a legal tap-target height (#205: 50-56px tall
-    buttons 10px apart read as one blob and caused mis-taps)."""
+    """Raise if `h` is not a legal tap-target height. Below the band, adjacent
+    controls read as one blob and mis-fire."""
     if not (TARGET_H_MIN <= h <= TARGET_H_MAX):
         raise ValueError(
             "tap target height %d is outside [%d, %d] -- see tokens.json "

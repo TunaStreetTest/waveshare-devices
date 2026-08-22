@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2026 Steven Matison
+#
+# SPDX-License-Identifier: Apache-2.0
 """Stage runtime app packages into a littlefs_data.bin image, off-device.
 
 The board scans /apps on every post-flash reset, and a storage flash replaces

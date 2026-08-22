@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Structural lint for JSON-UI screen files (#208).
+# SPDX-FileCopyrightText: 2026 Steven Matison
+#
+# SPDX-License-Identifier: Apache-2.0
+"""Structural lint for JSON-UI screen files.
 
 panelkit.py closes trap 1 and trap 2 at *generation* time -- a screen built
 with its primitives can't emit the bad shapes at all. This module re-checks
@@ -12,12 +15,37 @@ panelkit.py imports this module and calls lint_tree() on every screen it
 builds (see the bottom of this file), so a screen assembled purely from
 panelkit primitives is linted the moment it's built, not just at flash time.
 
+Rules R1-R10, the same set and the same numbers as the pre-flash check
+(tools/simulator/lint.js), both reading their thresholds from
+tokens.json. lint.js additionally has R0, a *dynamic* reachability check
+that needs a booted app -- that one has no structural twin here.
+
 Run standalone: `python3 lint.py <screen.json> [...]`
 """
 import json
 import sys
 
 import tokens as tk
+
+# The rule inventory, in one place so the linter can describe itself
+# (`python3 lint.py --rules`) and so selftest.py can assert that the pre-flash
+# twin (tools/simulator/lint.js) implements the same set. Two linters that
+# quietly drift apart are worse than one: a generator would pass its own gate
+# and fail at flash time, or -- the dangerous direction -- pass both and fail
+# on the glass. lint.js additionally has R0, a *dynamic* reachability check
+# that needs a booted app and has no structural twin here.
+RULES = {
+    "R1": "trap 1 -- a flex/grid container with an absolute-placed child",
+    "R2": "trap 2 -- requireValidPress, or a tap target without pressLock/scrollable:false",
+    "R3": "text below the readable floor",
+    "R4": "two sibling tap targets closer than the minimum gap",
+    "R5": "an absolute node whose box escapes the panel",
+    "R6": "trap 3 -- an image that does not declare clickable, so it swallows taps",
+    "R7": "trap 4 -- text outside ASCII, which the built-in Montserrat cannot draw",
+    "R8": "a fontSize that is not on the compiled Montserrat ladder",
+    "R9": "a label box shorter than the font's real line height",
+    "R10": "edge-anchored text sitting inside the glass's rounded corner",
+}
 
 FLEX_LAYOUT_TYPES = ("flex", "grid")
 # Event types that represent an actual tap/touch target, as opposed to e.g. a
@@ -45,10 +73,44 @@ def _box(node):
     return None
 
 
+def _geometry(root):
+    """Map id(node) -> (abs_x, abs_y, w, h) for every node whose position is
+    knowable from the JSON alone.
+
+    A node qualifies when it and every ancestor up to the root are
+    absolute-placed: then its screen position is just the running sum of the
+    x/y chain. A flow-placed node's position is decided by its parent's flex
+    layout at runtime, so it is left out of the map entirely and the geometry
+    rules (R5, R10) skip it -- tools/simulator/lint.js has a layout pass that
+    can estimate those, this one deliberately does not guess.
+    """
+    geo = {}
+
+    def visit(node, ox, oy, placed):
+        b = _box(node)
+        if placed and b is not None:
+            x, y, w, h = b
+            ax, ay = ox + x, oy + y
+            geo[id(node)] = (ax, ay, w, h)
+            cox, coy, cplaced = ax, ay, True
+        else:
+            # Root viewScreen has no placement of its own but IS the origin.
+            if placed and b is None and not node.get("placement"):
+                cox, coy, cplaced = ox, oy, True
+            else:
+                cox, coy, cplaced = 0, 0, False
+        for c in node.get("children", []) or []:
+            visit(c, cox, coy, cplaced)
+
+    visit(root, 0, 0, True)
+    return geo
+
+
 def lint_tree(root, file_label="screen"):
     """Return a list of "file:/node/path rule message" violation strings."""
     nodes = []
     _walk(root, "", nodes)
+    geo = _geometry(root)
     violations = []
 
     def report(node, path, rule, msg):
@@ -97,14 +159,11 @@ def lint_tree(root, file_label="screen"):
                        "fontSize %d is below the text floor (%d)" % (size, tk.TEXT_FLOOR))
 
     # R4 -- target spacing: sibling tap targets closer than target_gap_min.
-    # Gated to boxes at or under target_h_max: the #205 "blob" failure was
-    # control-sized chrome (buttons near the touch-target band) packed a few
-    # px apart. A big content tile (a car-select card, well over the band) is
-    # already visually and spatially distinct at any gap, and a set of
-    # full-bleed adjacent zones tiling a region with *zero* gap (racing's
-    # lane thirds -- "target the outcome, not the control", tokens.json
-    # touch.note) is the deliberate fix for this trap, not another instance
-    # of it: there's no ambiguous sliver between them for a tap to land in.
+    # Gated to boxes at or under target_h_max. The ambiguity this guards
+    # against is between two discrete, similarly-sized controls. A content
+    # tile well above the band is already distinct at any gap, and adjacent
+    # zones tiling a region with zero gap leave no sliver for a tap to fall
+    # into -- neither is an instance of the failure.
     for node, path in nodes:
         targets = [c for c in (node.get("children", []) or []) if c.get("events")]
         boxes = [(c, _box(c)) for c in targets]
@@ -133,7 +192,10 @@ def lint_tree(root, file_label="screen"):
                           if k.startswith("placement."))
         if "x" in bound_axes or "y" in bound_axes:
             continue
-        x, y, w, h = b
+        abs_box = geo.get(id(node))
+        if abs_box is None:
+            continue  # flow-placed: position is the parent's flex to decide
+        x, y, w, h = abs_box
         if x < 0 or y < 0 or x + w > tk.W or y + h > tk.H:
             report(node, path, "R5",
                    "box (%d,%d,%d,%d) escapes the %dx%d panel"
@@ -142,7 +204,7 @@ def lint_tree(root, file_label="screen"):
     # R6 -- trap 3: an image with no explicit `clickable`. The runtime
     # defaults an image node to clickable:true, so a decorative picture drawn
     # over a tap zone eats every tap that lands on it and the zone below never
-    # sees one (T-MINUS's launch art, found on the glass 2026-08-21).
+    # sees one.
     for node, path in nodes:
         if node.get("type") != "image":
             continue
@@ -167,6 +229,73 @@ def lint_tree(root, file_label="screen"):
                        % (text, ord(ch)))
                 break
 
+    # R8 -- the compiled font ladder. There is no FreeType and no TinyTTF in
+    # this build, so a fontSize is not scaled to order: get_builtin_font()
+    # (gui/brookesia_gui_lvgl/src/style_font.cpp) returns an exact match or
+    # else the closest SMALLER compiled Montserrat face. An off-ladder size
+    # therefore renders silently smaller than it reads in the source -- the
+    # shell's 11sp clock was drawn at 8px, and a 56px "hero" is really 48px.
+    for node, path in nodes:
+        size = (node.get("style") or {}).get("fontSize")
+        if not isinstance(size, int) or size in tk.FONT_LADDER:
+            continue
+        drawn = max([r for r in tk.FONT_LADDER if r < size], default=None)
+        report(node, path, "R8",
+               "fontSize %d is not a compiled Montserrat size -- it will "
+               "render at %s. Use one of: %s"
+               % (size,
+                  ("%dpx" % drawn) if drawn is not None else
+                  "the LVGL default (no smaller face exists)",
+                  ", ".join(str(r) for r in tk.FONT_LADDER)))
+
+    # R9 -- a label box shorter than the font's real line height clips
+    # descenders. The heights are the actual .line_height out of each
+    # lv_font_montserrat_<n>.c, not the desktop habit of ~1.3x the nominal
+    # size: the real ratio is ~1.1x, and guessing high falsely condemns boxes
+    # that are fine while hiding the ones that are not.
+    for node, path in nodes:
+        if node.get("type") != "label":
+            continue
+        size = (node.get("style") or {}).get("fontSize")
+        h = (node.get("placement") or {}).get("height")
+        need = tk.LINE_HEIGHT.get(size)
+        if need is not None and isinstance(h, int) and h < need:
+            report(node, path, "R9",
+                   "label box is %dpx tall but Montserrat %d has a line "
+                   "height of %dpx -- descenders will be clipped"
+                   % (h, size, need))
+
+    # R10 -- edge-anchored text sitting inside a rounded corner. The glass is
+    # a rounded rectangle, so near the top and bottom edges the usable width
+    # is narrower than the panel: text at the normal 16px edge inset but only
+    # a few px down is inside the arc and reads as jammed into the curve.
+    # Only left/right-aligned text is at risk -- a centred label's box can
+    # span the full width while its glyphs sit safely in the middle.
+    for node, path in nodes:
+        if node.get("type") != "label" or not tk.CORNER_RADIUS:
+            continue
+        abs_box = geo.get(id(node))
+        if abs_box is None:
+            continue
+        align = (node.get("style") or {}).get("textAlign", "left")
+        if align == "center":
+            continue
+        x, y, w, h = abs_box
+        d = min(max(y, 0), max(tk.H - (y + h), 0))
+        need = tk.corner_inset(d)
+        if need <= 0:
+            continue
+        if align == "left" and x < need:
+            report(node, path, "R10",
+                   "left-aligned text starts at x=%d but the rounded corner "
+                   "needs x>=%d this close to the edge (%dpx). Move it down "
+                   "or in." % (x, need, d))
+        elif align == "right" and (tk.W - (x + w)) < need:
+            report(node, path, "R10",
+                   "right-aligned text ends at x=%d but the rounded corner "
+                   "needs it to end by x<=%d this close to the edge (%dpx). "
+                   "Move it down or in." % (x + w, tk.W - need, d))
+
     return violations
 
 
@@ -188,8 +317,13 @@ def lint_file(path):
 
 
 if __name__ == "__main__":
+    if len(sys.argv) == 2 and sys.argv[1] == "--rules":
+        for rid in sorted(RULES, key=lambda r: int(r[1:])):
+            print("%-4s %s" % (rid, RULES[rid]))
+        sys.exit(0)
     if len(sys.argv) < 2:
-        print("usage: python3 lint.py <screen.json> [...]", file=sys.stderr)
+        print("usage: python3 lint.py <screen.json> [...]\n"
+              "       python3 lint.py --rules", file=sys.stderr)
         sys.exit(2)
     all_violations = []
     for path in sys.argv[1:]:

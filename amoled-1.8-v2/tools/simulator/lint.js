@@ -1,11 +1,16 @@
 #!/usr/bin/env node
 /*
- * The pre-flash check (#212), referenced by name in uikit/tokens.json's own
+ * SPDX-FileCopyrightText: 2026 Steven Matison
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+/*
+ * The pre-flash check, referenced by name in uikit/tokens.json's own
  * comment: "tools/simulator/lint.js (the pre-flash check)". Two passes:
  *
  *   1. Dynamic reachability: boot the package under --fixture, hook every
  *      SystemGui call and fail on any {success:false} (that is how a dead
- *      g_clock path shipped in #205 without anyone noticing), fire every
+ *      binding path can ship unnoticed), fire every
  *      action the app subscribed to once, and advance the clock past every
  *      registered timer interval so every on_timer branch runs too.
  *   2. Static token/trap lint over res/screens/*.json, thresholds read from
@@ -73,7 +78,7 @@ async function dynamicCheck(pkg) {
 
     // Hook SystemGui: any {success:false} during boot/action-sweep/timer-sweep
     // is a dynamic-check failure (R0) -- this is how a dead g_clock path
-    // shipped in #205 without tripping anything.
+    // can otherwise ship without tripping anything.
     const origGui = shim.gui.bind(shim);
     shim.gui = function (fn, p) {
         const r = origGui(fn, p);
@@ -188,7 +193,7 @@ function cornerInset(d) {
         if (node.type === "label") {
             const fs2 = node.style && node.style.fontSize;
             if (typeof fs2 === "number" && fs2 < T.text.floor) {
-                report(rel, node._path, "R3", "fontSize " + fs2 + " is under the " + T.text.floor + "px floor (unreadable at arm's length, #205)");
+                report(rel, node._path, "R3", "fontSize " + fs2 + " is under the " + T.text.floor + "px floor (unreadable at typical holding distance)");
             }
         }
 
@@ -210,9 +215,8 @@ function cornerInset(d) {
         // R6: an image that doesn't declare `clickable`. The runtime defaults
         // an image node to clickable:true (parser_node.cpp
         // default_clickable_for_node_type), so a decorative picture drawn over
-        // a tap zone eats every tap and the zone under it never fires --
-        // T-MINUS's launch art, found on the glass 2026-08-21 by the backend
-        // never receiving a single /tminus/step.
+        // a tap zone consumes every tap and the zone under it never fires.
+        // The symptom is a control that looks correct and issues no requests.
         if (node.type === "image") {
             const cp = node.commonProps || {};
             if (!Object.prototype.hasOwnProperty.call(cp, "clickable")) {

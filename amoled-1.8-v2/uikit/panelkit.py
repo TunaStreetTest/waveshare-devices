@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
-"""UI primitives for JSON-UI screens on the AMOLED 1.8 V2 (#208).
+# SPDX-FileCopyrightText: 2026 Steven Matison
+#
+# SPDX-License-Identifier: Apache-2.0
+"""UI primitives for JSON-UI screens on the AMOLED 1.8 V2.
 
 Every function here returns a JSON-UI node dict in the exact shape the
-ESP-Brookesia `SystemGui` runtime expects. They exist because two structural
-mistakes each cost a flash cycle in #205, and documenting "don't do that" in a
-comment was not enough to stop a fresh session from doing it again:
+ESP-Brookesia `SystemGui` runtime expects. Each primitive exists to make one
+of the panel's constraints unrepresentable, so that violating it raises at
+generation time rather than rendering wrong on the glass:
 
   Trap 1 -- a container with layout.type flex/grid lays out its own children
   and silently overrides any absolute x/y they carry. A screen built this way
@@ -26,9 +29,8 @@ comment was not enough to stop a fresh session from doing it again:
   Trap 3 -- an `image` node defaults to **clickable:true** in the runtime
   (`parser_node.cpp` `default_clickable_for_node_type`: Label is false,
   Image/Canvas/Container are true), so a decorative picture drawn over a tap
-  zone swallows every tap that lands on it. The zone is there, the hit-test
-  just never reaches it. Found on the glass 2026-08-21: T-MINUS's launch art
-  covered its whole nav band and no tap ever produced a `/tminus/step`.
+  zone consumes every tap that lands on it. The zone is there, the hit-test
+  just never reaches it, so the control looks correct and issues no requests.
   Closed here by `sprite()` emitting `clickable:false` unless a caller asks
   for a tappable image.
 
@@ -36,9 +38,9 @@ comment was not enough to stop a fresh session from doing it again:
   LVGL's built-in Montserrat, which carries ASCII and nothing else. A
   non-ASCII character renders as a white tofu box; the boot log's
   "Font asset 'default' requires FreeType support, fallback to built-in
-  Montserrat" is the warning for it. Shipped twice: the nav chevrons
-  U+2039/U+203A and the middle dots in "Go - 4/8". Closed here by label()
-  and button() refusing non-ASCII text at generation time.
+  Montserrat" is the warning for it. Closed here by label() and button()
+  refusing non-ASCII text at generation time. Runtime text is a separate
+  problem, handled by ascii.js.
 
 Sizing is enforced against uikit/tokens.json, not re-guessed per screen:
 label() checks its fontSize against the role's band (and the absolute text
@@ -221,9 +223,13 @@ def stack(id, children, direction="column", gap=tk.ROW, main_align="start",
 def label(id, x, y, w, h, text="", role="body", color=tk.INK, align="center",
           size=None, bindings=None, click=None, hidden=None):
     """A text node. `size` defaults to the role's band floor; an explicit
-    size outside the band raises, and anything under the absolute text floor
-    (15px) raises regardless of role -- #205 shipped 11px labels that were
-    unreadable at arm's length.
+    size outside the band raises, anything under the absolute text floor
+    raises regardless of role, and a size off the compiled Montserrat
+    ladder raises
+    because the board would silently draw it at the next rung DOWN.
+
+    `h` is checked against that face's real line height too -- a box shorter
+    than the line height clips descenders (lint R9, same threshold).
 
     x=None (y must also be None) builds a flow-placed label for use as a
     stack() child instead of a canvas() child.
@@ -231,6 +237,7 @@ def label(id, x, y, w, h, text="", role="body", color=tk.INK, align="center",
     if size is None:
         size = tk.default_size(role)
     tk.check_size(role, size)
+    tk.check_line_height(size, h)
     check_text(id, text)
 
     if x is None and y is None:
@@ -265,7 +272,7 @@ def button(id, x, y, w, h, text, action, bg=tk.ORANGE, fg=tk.BG, size=None,
            radius=tk.RADIUS, bindings=None, hidden=None):
     """A big tap target: the label fills the box so the whole slab is the
     button. Height must fall in [touch.target_h_min, touch.target_h_max] --
-    #205 shipped 50-56px buttons 10px apart that read as one blob.
+    Below that band, adjacent controls read as one blob and mis-fire.
 
     There is no code path in this function that can produce a `clicked`
     event or requireValidPress: it always goes through canvas()'s click=,
@@ -289,8 +296,8 @@ def row(id, x, y, items, gap=None, h=None):
     underneath: row() is a layout-time convenience, not a runtime flex box.
 
     If any item carries `events` (a tap target) the gap is clamped up to
-    touch.target_gap_min (40) for the whole row -- #205's 10px-apart buttons
-    read as one blob no matter how the row was assembled.
+    touch.target_gap_min for the whole row: controls closer than that read as
+    one blob however the row was assembled.
     """
     if gap is None:
         gap = tk.ROW
@@ -348,7 +355,7 @@ def stat_bar(id, x, y, w, stats, value_h=None, caption_h=None):
 
 # --------------------------------------------------------------- tool_bar
 def tool_bar(id, x, y, w, items, h=None):
-    """Bottom bar of big tap targets (#198: LIKE heart, views, comments,
+    """Bottom bar of big tap targets (LIKE heart, views, comments,
     clear). Tappable items go through button()'s contract (pressed/released
     only, target-height floor) and are spaced >= touch.target_gap_min apart.
     An item flagged compact=True is a pure readout (a count, not a target):

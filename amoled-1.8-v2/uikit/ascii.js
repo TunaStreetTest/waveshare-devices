@@ -1,4 +1,9 @@
 /*
+ * SPDX-FileCopyrightText: 2026 Steven Matison
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+/*
  * toAscii -- the canonical runtime text sanitiser for the AMOLED 1.8 V2.
  *
  * THIS FILE IS THE SOURCE OF TRUTH AND IS COPIED VERBATIM INTO EVERY APP.

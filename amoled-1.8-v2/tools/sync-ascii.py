@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2026 Steven Matison
+#
+# SPDX-License-Identifier: Apache-2.0
 """Copy the canonical toAscii() from uikit/ascii.js into every app package.
 
 The Brookesia JS runtime has no module loader -- an app is one global script --

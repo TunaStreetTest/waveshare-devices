@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Self-test for panelkit.py + lint.py (#208).
+# SPDX-FileCopyrightText: 2026 Steven Matison
+#
+# SPDX-License-Identifier: Apache-2.0
+"""Self-test for panelkit.py + lint.py.
 
 Two kinds of check:
   1. Deliberate violations (an 11px label, a 50px button, an absolute child
@@ -10,13 +13,14 @@ Two kinds of check:
      home.json (built with panelkit) comes back clean.
 
 The dirty fixture is tunastreet.xviewer's hand-written screen as it shipped
-before #198 rebuilt it -- kept here as a frozen copy precisely because the
-live file was going to be fixed, and a lint whose only proof is a file
-somebody is about to repair has no proof at all.
+before the kit existed -- kept as a frozen copy because the live file was
+going to be fixed, and a lint whose only negative proof is a file someone is
+about to repair has no negative proof.
 
 Run: python3 selftest.py
 """
 import os
+import re
 import sys
 
 import lint
@@ -27,6 +31,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 DIRTY_JSON = os.path.join(HERE, "fixtures", "dirty-screen.json")
 TAP_UNDER_IMAGE_JSON = os.path.join(HERE, "fixtures", "tap-under-image.json")
 RACING_JSON = os.path.join(HERE, "..", "apps", "tunastreet.racing", "res", "screens", "home.json")
+LINT_JS = os.path.join(HERE, "..", "tools", "simulator", "lint.js")
+APPS_DIR = os.path.join(HERE, "..", "apps")
 
 _failures = []
 
@@ -110,10 +116,10 @@ def test_dirty_fixture_flags_known_bad_nodes():
 
 
 def test_undeclared_image_over_tap_zone_is_flagged():
-    """R6: the T-MINUS shape that shipped 2026-08-21 -- a tap zone with a
-    decorative image drawn over it. The image defaults to clickable:true in
-    the runtime and ate every tap; the fixture freezes both halves, the
-    undeclared image and a correctly declared one."""
+    """R6: a tap zone with a decorative image drawn over it. The image
+    defaults to clickable:true in the runtime and consumes every tap. The
+    fixture freezes both halves -- the undeclared image and a correctly
+    declared one."""
     violations = lint.lint_file(TAP_UNDER_IMAGE_JSON)
     r6 = set()
     for v in violations:
@@ -138,6 +144,83 @@ def test_racing_is_clean():
     assert violations == [], violations
 
 
+# ------------------------------------------------------------- the newer rules
+def test_off_ladder_font_size_raises():
+    """R8: there is no FreeType and no TinyTTF in this build, so a fontSize is
+    not scaled to order -- get_builtin_font() returns an exact match or the
+    closest SMALLER compiled face. 18 is between rungs and would be drawn at
+    16, silently."""
+    expect_raises(pk.label, "t", 0, 0, 100, 30, text="x", role="body", size=18)
+
+
+def test_label_box_shorter_than_line_height_raises():
+    """R9: Montserrat 16 has a real line height of 18px, so a 14px box clips
+    descenders. The threshold is the actual .line_height from the compiled
+    font, not the ~1.3x a desktop habit assumes."""
+    expect_raises(pk.label, "t", 0, 0, 100, 14, text="x", role="body", size=16)
+
+
+def test_corner_text_is_flagged_by_screen():
+    """R10: the glass is a rounded rectangle. A left-aligned label at the
+    normal 16px edge inset but only 2px down sits inside the corner arc --
+    x-viewer's 'n/N' counter, reported twice before it was computed rather
+    than eyeballed. screen() lints the assembled tree, which is where the
+    absolute position is finally known, so this is caught at generation."""
+    corner = pk.label("counter", 16, 2, 60, 20, text="3/8", role="body", align="left")
+    expect_raises(pk.screen, "s", [corner])
+
+
+def test_r5_uses_absolute_coordinates():
+    """A child's placement.x is relative to its parent, so a box only escapes
+    the panel once the ancestor offsets are added in. Checking the raw x/y
+    (which is what this lint did before) both misses real escapes and invents
+    fake ones."""
+    inner = pk.label("inner", 300, 0, 60, 20, text="x", role="body")
+    outer = pk.canvas("outer", 40, 100, 328, 40, children=[inner])
+    violations = lint.lint_tree({"type": "viewScreen", "id": "s", "children": [outer]}, "t")
+    r5 = [v for v in violations if " R5 " in v]
+    assert len(r5) == 1 and "inner" in r5[0], r5
+    assert "(340,100,60,20)" in r5[0], "R5 did not add the parent offset: %s" % r5
+
+
+# ------------------------------------------------------ parity with the JS twin
+def test_rule_ids_match_lint_js():
+    """The kit ships two linters: this one gates *generation*, and
+    tools/simulator/lint.js gates the *flash*. They read the same tokens.json
+    and must implement the same rule numbers -- if they drift, a generator
+    passes its own gate and fails later, or (worse) passes both and fails on
+    the glass. R0 is lint.js-only: it is a dynamic reachability check that
+    needs a booted app, and has no structural twin."""
+    assert os.path.exists(LINT_JS), "missing " + LINT_JS
+    js = open(LINT_JS).read()
+    js_rules = set(re.findall(r'"(R\d+)"', js)) - {"R0"}
+    py_rules = set(re.findall(r'"(R\d+)"', open(os.path.join(HERE, "lint.py")).read()))
+    assert py_rules == set(lint.RULES), (
+        "lint.py's RULES table disagrees with the rules it actually reports: %s"
+        % (py_rules ^ set(lint.RULES)))
+    assert js_rules == py_rules, (
+        "lint.py and lint.js implement different rule sets: only in JS %s, "
+        "only in Python %s" % (sorted(js_rules - py_rules), sorted(py_rules - js_rules)))
+
+
+def test_shipped_apps_are_clean():
+    """Every app currently on the glass passes the full rule set. This is what
+    makes the additions above a strengthening rather than a rewrite: they
+    found nothing in code that was already believed good."""
+    dirty = {}
+    for app in sorted(os.listdir(APPS_DIR)):
+        screens = os.path.join(APPS_DIR, app, "res", "screens")
+        if not os.path.isdir(screens):
+            continue
+        for name in sorted(os.listdir(screens)):
+            if not name.endswith(".json"):
+                continue
+            v = lint.lint_file(os.path.join(screens, name))
+            if v:
+                dirty[app + "/" + name] = v
+    assert not dirty, dirty
+
+
 if __name__ == "__main__":
     check("label below text floor raises", test_label_below_text_floor)
     check("label outside role band raises", test_label_outside_band)
@@ -150,6 +233,12 @@ if __name__ == "__main__":
     check("undeclared image over a tap zone raises R6", test_undeclared_image_over_tap_zone_is_flagged)
     check("non-ASCII label text raises R7", test_non_ascii_text_is_flagged)
     check("racing.json lints clean", test_racing_is_clean)
+    check("off-ladder fontSize raises (R8)", test_off_ladder_font_size_raises)
+    check("label box under the line height raises (R9)", test_label_box_shorter_than_line_height_raises)
+    check("text in the rounded corner raises (R10)", test_corner_text_is_flagged_by_screen)
+    check("R5 uses absolute, not parent-relative, coordinates", test_r5_uses_absolute_coordinates)
+    check("lint.py and lint.js implement the same rules", test_rule_ids_match_lint_js)
+    check("every shipped app lints clean", test_shipped_apps_are_clean)
 
     if _failures:
         print("\nFAILURES:")
