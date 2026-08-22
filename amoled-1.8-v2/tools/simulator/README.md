@@ -23,7 +23,7 @@ loaded by path via `--drive` / `?drive=`, never hardcoded in the core.
 | `fixtures.js` + `fixtures/<app-id>.json` | Canned HTTP responses keyed by `"METHOD /path"` or bare `/path`, matched against the request URL's pathname. A path with no entry synthesizes `200 {}` and logs a WARN -- boot still proceeds. |
 | `headless.js` | Node CLI: boots a package under the shim, and if `--drive` is given, calls the driver's `step()` every 40ms tick until `isDone()` or the tick budget runs out, then prints `summary()` (or a generic label dump if the driver has none). |
 | `serve.js` | Static server, Node built-ins only (`http`/`fs`/`path`), no app backend needed. `GET /` -> `panel.html`, `GET /sim/<path>` -> anything under this dir (path-contained), `GET /pkg/<app>/<path>` -> `apps/<app>/<path>` (path-contained). Default port `:8095` (8091/8092/8093/8099 are already other things on this host). |
-| `panel.html` | Browser renderer at true 368x448, panel-only (no sidebar/legend -- see "UI" below). Real CSS flex for `layout.type:"flex"` nodes, `position:absolute` for `placement.mode:"absolute"` ones. Synthesizes tap and swipe gestures from pointer events. Loads a driver via `?drive=` as a classic `<script>` (sets `window.PanelDriver`). |
+| `panel.html` | Browser renderer, panel-only (no sidebar/legend -- see "UI" below). Builds the tree at true 368x448 and scales the finished glass to the window (see "Panel size" below). Real CSS flex for `layout.type:"flex"` nodes, `position:absolute` for `placement.mode:"absolute"` ones. Synthesizes tap and swipe gestures from pointer events. Loads a driver via `?drive=` as a classic `<script>` (sets `window.PanelDriver`). |
 | `drive.js` | Launches a real, visible Chromium over CDP (Node 24's built-in `WebSocket`, no puppeteer), screenshots the run, and **always closes the Chromium it opened** -- normal exit, error, or SIGINT/SIGTERM -- so a run never leaves an orphan window or profile-holding process behind. |
 | `lint.js` | `--check <app-id>`: dynamic reachability sweep (boots under `--fixture`, fails on any `{success:false}` from `SystemGui`, fires every subscribed action once, advances the clock past every timer interval) + static R1-R5 token/trap lint over `res/screens/*.json`, thresholds read from `uikit/tokens.json`. |
 | `examples/racing-bot.js` | tunastreet.racing's autopilot, moved out of the core. Exports `{create(shim,opts), keymap, onKey}` -- the driver contract below. |
@@ -43,9 +43,11 @@ the left, so the conversation and all four panels are readable at once:
 | racing | 8097 | `:8093` (fixture + autopilot, see below) | 1110, 502 |
 | xviewer | 8095 | `:8091` | 1512, 502 |
 
-Cells are 400×497 — the 368×448 glass plus Chromium's frame and title bar. On a
-different screen, override the block: `WALL_X0=… WALL_Y0=… WIN_W=… WIN_H=…
-./wall.sh tile`. `start` is idempotent (it skips whatever is already up), `stop`
+Cells are 400×530 — the 368×448 glass, Chromium's frame, and the driver-button
+row racing's cell now carries (#219; at the old 497 that row put racing at
+0.97x while the other three sat at 1.01x — at 530 all four measure 1.01x). On
+a different screen, override the block:
+`WALL_X0=… WALL_Y0=… WIN_W=… WIN_H=… ./wall.sh tile`. `start` is idempotent (it skips whatever is already up), `stop`
 closes what it started, `status` prints the current state, and `tile` re-applies
 positions without restarting anything.
 
@@ -172,13 +174,31 @@ this harness must pass `--fixture` (or `&fixture=1` in the browser) --
 without `--fixture` will make real `fetch()` calls if you ask it to; that's
 for a deliberate manual live-backend test, never for CI/regression.
 
+### Panel size (#219)
+
+The view tree is **always built at 368x448** -- every coordinate the app
+computes and every geometry the renderer writes stays in device pixels -- and
+only the finished stage is blown up with a CSS `transform: scale()`. Scaling
+the transform rather than the layout is what keeps "what the sim shows"
+identical to "what the glass shows": nothing re-flows at a different size, it
+is the same pixels, larger. Gesture thresholds are divided back down by the
+scale, so a swipe still needs the same *device* travel it would on the board.
+
+Default is fit-to-window: a maximized window on this 1920x1080 desk gives
+about 2.1x, a `wall.sh` cell about 1.0x. `&scale=N` pins an exact factor
+instead (`&scale=1` for literal device size).
+
 ### UI: panel-only
 
-`panel.html` shows the 368x448 glass and nothing beside it -- no legend, no
-node inspector, no app switcher. App/driver/fixture selection is query
-params (`?app=`, `&drive=`, `&fixture=1`, `&claude=1` to auto-engage the
-autopilot); the only on-page chrome is a thin control strip and a log,
-**below** the panel's own bottom edge, never left/right/wrapped. Click/tap a
+`panel.html` shows the glass and nothing beside it -- no legend, no node
+inspector, no app switcher. App/driver/fixture selection is query params
+(`?app=`, `&drive=`, `&fixture=1`, `&scale=N`, `&claude=1` to auto-engage the
+autopilot). The one piece of on-page chrome that shows by itself is the
+**driver button** -- `CLAUDE DRIVES — start` / `— stop`, with `C` as its
+keyboard toggle -- which appears whenever a `?drive=` module is loaded: an
+autopilot with no on/off switch can only be started from the URL (#219). The
+log strip stays behind `&chrome=1`. Neither ever sits beside the panel, only
+below it. Click/tap a
 node the app wired a `clicked`/`pressed` event to; a short drag on a node
 with a `{"type":"gesture"}` handler synthesizes a swipe and logs
 `{direction, distance, ms}` so you can sanity-check it against the app's own

@@ -28,11 +28,16 @@ CHROMIUM="${CHROMIUM:-/snap/bin/chromium}"
 # agent / tminus over racing / xviewer.
 #
 # Origin and cell size are env-overridable for a different screen:
-#   WALL_X0=1110 WALL_Y0=4 WIN_W=400 WIN_H=497 ./wall.sh tile
+#   WALL_X0=1110 WALL_Y0=4 WIN_W=400 WIN_H=530 ./wall.sh tile
 X0="${WALL_X0:-1110}"      # left edge of the block
 Y0="${WALL_Y0:-4}"         # top edge of the block
 WIN_W="${WIN_W:-400}"      # 368 px of glass plus Chromium's frame
-WIN_H="${WIN_H:-497}"      # 448 px of glass plus frame and title bar
+# 530, not 497: racing's cell now also carries the autopilot on/off button
+# (#219), and the panel fits itself to whatever height is left over -- at 497
+# that row put racing at 0.97x while the other three sat at 1.01x. At 530 all
+# four measure 1.01x. Two rows of 530 plus the origin is 1065 on this
+# 3840x1080 desk, so the block still clears the bottom edge.
+WIN_H="${WIN_H:-530}"      # 448 px of glass, frame/title bar, and the driver row
 COL=$((X0 + WIN_W + 2))
 ROW=$((Y0 + WIN_H + 1))
 

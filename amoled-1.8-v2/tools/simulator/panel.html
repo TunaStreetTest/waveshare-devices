@@ -4,27 +4,45 @@
 <meta charset="utf-8">
 <title>Brookesia panel simulator</title>
 <style>
-  /* Panel-only page: the 368x448 glass and nothing else. The window is
-     meant to be sized to the panel, so there is no room for -- and no
-     reason for -- controls or a log around it. Add ?chrome=1 to reveal the
-     driver button and the log strip underneath when debugging; they never
-     sit beside the panel, only below it.
-     App/driver/fixture selection is query-params + keyboard, not on-page
-     chrome (see README.md's flag list). */
+  /* Panel-only page: the glass and nothing else. App/driver/fixture
+     selection is query-params + keyboard, not on-page chrome (see
+     README.md's flag list).
+
+     The glass is ALWAYS built at its true 368x448 -- every coordinate the
+     app computes, every geometry the renderer writes, stays in device
+     pixels -- and only the finished stage is blown up with a CSS transform
+     (#219: at literal device size on a 1920x1080 desktop it is a postage
+     stamp). Scaling a transform, not the layout, is what keeps "what the
+     sim shows" identical to "what the glass shows": nothing re-flows at a
+     different size, it is the same pixels, larger. Default is fit-to-window
+     (so a maximized window gives a big panel and a wall.sh cell gives about
+     1x); ?scale=N pins an exact factor instead.
+
+     The driver button is shown whenever a ?drive= module is loaded -- it is
+     the autopilot's on/off switch and there is no other way to reach it
+     (#219). The log strip stays behind ?chrome=1. Neither ever sits beside
+     the panel, only below it. */
   html, body { height:100%; }
   body { background:#0b0b0d; color:#ddd; font-family:'Segoe UI',sans-serif; margin:0;
-         display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; }
-  body:not(.chrome) #bar, body:not(.chrome) #log { display:none; }
-  #panel { position:relative; width:368px; height:448px; background:#000; overflow:hidden;
-           border-radius:22px; box-shadow:0 0 0 10px #111, 0 12px 40px #000; flex:none; }
+         display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+         overflow:hidden; }
+  body:not(.chrome):not(.driver) #bar { display:none; }
+  body:not(.chrome) #log, body:not(.chrome) #apptag { display:none; }
+  /* The stage carries the scaled-up footprint; the panel inside it is always
+     368x448 and is transformed onto it. */
+  #stage { position:relative; flex:none; background:#000;
+           box-shadow:0 0 0 10px #111, 0 12px 40px #000; }
+  #panel { position:absolute; left:0; top:0; width:368px; height:448px; background:#000;
+           overflow:hidden; transform-origin:0 0; border-radius:22px; }
   #panel * { box-sizing:border-box; }
   .node { display:flex; overflow:hidden; }
   .node img { max-width:100%; max-height:100%; object-fit:contain; }
-  #bar { width:368px; display:flex; gap:8px; justify-content:center; align-items:center; font-size:11px; }
+  #bar { display:flex; gap:8px; justify-content:center; align-items:center; font-size:11px;
+         flex-wrap:nowrap; white-space:nowrap; }
   #bar button { padding:5px 11px; font-size:11px; border-radius:7px; border:1px solid #555;
                 background:#F96702; color:#111; font-weight:700; cursor:pointer; }
   #bar button:disabled { background:#333; color:#777; cursor:default; }
-  #log { width:368px; max-height:90px; overflow:auto; background:#111; border:1px solid #333;
+  #log { max-height:90px; overflow:auto; background:#111; border:1px solid #333;
          border-radius:8px; padding:6px 8px; font-family:ui-monospace,Menlo,monospace; font-size:10px;
          white-space:pre-wrap; color:#888; }
   #err { position:fixed; top:0; left:0; right:0; background:#7f1d1d; color:#fff; padding:10px 16px;
@@ -33,7 +51,7 @@
 </head>
 <body>
 <div id="err"></div>
-<div id="panel"></div>
+<div id="stage"><div id="panel"></div></div>
 <div id="bar">
   <button id="auto" disabled>CLAUDE DRIVES — start</button>
   <span id="autostate" style="color:#888"></span>
@@ -47,10 +65,45 @@ const params = new URLSearchParams(location.search);
 const APP = params.get("app");
 const DRIVE = params.get("drive");
 const USE_FIXTURE = params.get("fixture") === "1";
-// The window is sized to the glass, so the driver button and log strip are
-// off unless asked for -- ?chrome=1 puts them back, below the panel.
+// The log strip is off unless asked for -- ?chrome=1 puts it back, below
+// the panel. The driver button appears on its own whenever ?drive= is given
+// (the .driver class, set here so the fit maths can reserve its row before
+// the module has finished loading).
 if (params.get("chrome") === "1") { document.body.classList.add("chrome"); }
+if (DRIVE) { document.body.classList.add("driver"); }
 const AUTO_CLAUDE = params.get("claude") === "1";
+
+// ---- panel scale ---------------------------------------------------------
+// PANEL_W/H are the glass, never changed. SCALE is a pure presentation
+// transform on top: ?scale=N for an exact factor, otherwise the largest
+// factor that still fits the window with room for whatever chrome is on.
+const PANEL_W = 368, PANEL_H = 448;
+const SCALE_PARAM = parseFloat(params.get("scale"));
+const stageEl = document.getElementById("stage");
+let SCALE = 1;
+function applyScale() {
+  const barEl = document.getElementById("bar"), logStrip = document.getElementById("log");
+  const chromeH = [barEl, logStrip]
+    .filter((el) => el && el.offsetParent !== null)
+    .reduce((h, el) => h + el.offsetHeight + 8, 0);
+  if (SCALE_PARAM > 0) {
+    SCALE = SCALE_PARAM;
+  } else {
+    // 28px, not 16: the bezel ring is a fixed 10px on each side of the stage
+    // and must not be clipped by the window edge.
+    const availW = Math.max(120, window.innerWidth - 28);
+    const availH = Math.max(120, window.innerHeight - 28 - chromeH);
+    SCALE = Math.min(availW / PANEL_W, availH / PANEL_H);
+  }
+  document.getElementById("panel").style.transform = "scale(" + SCALE + ")";
+  stageEl.style.width = (PANEL_W * SCALE) + "px";
+  stageEl.style.height = (PANEL_H * SCALE) + "px";
+  stageEl.style.borderRadius = (22 * SCALE) + "px";
+  barEl.style.width = (PANEL_W * SCALE) + "px";
+  logStrip.style.width = (PANEL_W * SCALE) + "px";
+}
+applyScale();
+window.addEventListener("resize", applyScale);
 
 const logEl = document.getElementById("log");
 function log(s) { logEl.textContent += s + "\n"; logEl.scrollTop = logEl.scrollHeight; }
@@ -309,6 +362,9 @@ DomRenderer.prototype.render = function () {
     (ev && ev.effects || []).forEach((eff) => shim.emit(eff.action));
   }
 
+  // Thresholds are DEVICE pixels: divide the on-screen travel by SCALE, or a
+  // scaled-up panel would need a proportionally longer drag to register the
+  // same swipe the glass would see.
   const TAP_DIST = 12, SWIPE_DIST = 24;
   let pd = null;
   const panelEl = document.getElementById("panel");
@@ -319,7 +375,7 @@ DomRenderer.prototype.render = function () {
   });
   panelEl.addEventListener("pointerup", (e) => {
     if (!pd) { return; }
-    const dx = e.clientX - pd.x, dy = e.clientY - pd.y;
+    const dx = (e.clientX - pd.x) / SCALE, dy = (e.clientY - pd.y) / SCALE;
     const dist = Math.hypot(dx, dy);
     const dt = Math.round(performance.now() - pd.t);
     if (dist < TAP_DIST) {
@@ -377,10 +433,14 @@ DomRenderer.prototype.render = function () {
     auto = on;
     autoBtn.textContent = on ? "CLAUDE DRIVING — stop" : "CLAUDE DRIVES — start";
     autoBtn.style.background = on ? "#22c55e" : "#F96702";
-    autoState.textContent = on ? "autopilot engaged" : "";
+    autoState.textContent = on ? "autopilot engaged" : "C toggles";
     if (on && driver.boot) { driver.boot(); }
   }
-  if (driver) { autoBtn.disabled = false; }
+  if (driver) {
+    autoBtn.disabled = false;
+    autoState.textContent = "C toggles";
+    applyScale();   // the bar's row is real now; re-fit around it
+  }
   autoBtn.addEventListener("click", () => setAuto(!auto));
 
   let overSeen = 0;
