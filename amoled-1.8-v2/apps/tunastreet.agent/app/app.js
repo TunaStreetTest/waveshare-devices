@@ -414,7 +414,14 @@
         inFlightTicks = 0;
         httpRequest({
             url: BACKEND + "/agent/status",
-            method: "GET",
+            // "Get", NOT "GET". The Http service deserialises Request.method with
+            // describe_from_json, which for a described enum uses the STRICT
+            // describe_string_to_enum -- the enumerator is `Get`, so "GET" fails
+            // to parse, the request struct never deserialises, and the fetch
+            // never leaves the device. This app had it wrong from the day it was
+            // written, which is why its backend was never once reached while
+            // tminus/xviewer/racing (all "Get"/"Post") always worked.
+            method: "Get",
             timeout_ms: HTTP_TIMEOUT_MS
         }, function (response) {
             inFlight = false;

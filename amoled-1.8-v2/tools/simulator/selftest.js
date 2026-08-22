@@ -28,6 +28,11 @@ function check(name, ok, detail) {
 }
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+/* "n/N" is 1-based and wraps, so 3 -> 1 on a 3-card feed is one step forward. */
+function steppedOnce(before, after, count) {
+    return count > 0 && after === (before % count) + 1;
+}
+
 /* Let pending fixture fetches resolve and their render land. */
 async function settle(shim) {
     for (let i = 0; i < 10; i++) {
@@ -65,45 +70,55 @@ function boot(appId) {
 /*
  * One continuous drag must move exactly one card.
  *
- * The touch layer emits a gesture event for as long as the finger is moving,
- * so this fires a burst the way a real slow swipe does. The old leading-edge
- * cooldown (navAllowed, stamped only on accept) let a burst longer than the
- * window through two or three times -- "swipe left or right seems to swipe too
- * much". gestureAllowed() stamps on every event, accepted or not, so the burst
- * collapses to one step however long it runs.
+ * IMPORTANT: a real swipe on the glass produces BOTH kinds of event, and a test
+ * that only sends one of them is testing half a swipe. The prev/next tap zones
+ * cover the halves of the media card -- the very area you drag across -- and
+ * panelkit fires their action on `pressed` AND `released`; meanwhile the touch
+ * layer emits gesture events for as long as the finger moves. So this drives:
+ *
+ *     pressed(tap zone) -> gesture x N -> released(tap zone)
+ *
+ * The first version of this test emitted only the gesture events. It passed,
+ * shipped, and the panel then stepped SIX cards on one swipe, because taps and
+ * swipes had been given independent debounce clocks and each scored the same
+ * finger movement separately. Do not simplify this back to gesture-only.
  */
-async function swipeBurst(appId, action, readIndex) {
-    console.log("\n" + appId + " -- swipe burst latch");
+async function swipeBurst(appId, action, tapAction, readIndex, readCount) {
+    console.log("\n" + appId + " -- swipe burst latch (tap zone + gesture, as on the glass)");
     const { shim } = boot(appId);
-
-    // The fixture fetch resolves on a promise, so the feed is still empty for
-    // a tick or two after start(). Swiping an empty list is a no-op in every
-    // app here, which would make this test pass for the wrong reason.
     await settle(shim);
 
     const before = readIndex(shim);
-    // ~600 ms of continuous drag: comfortably longer than the old 350 ms
-    // cooldown, so the old code would have stepped at least twice here.
-    for (let i = 0; i < 15; i++) {
+    shim.emit(tapAction, {});                    // finger down on the nav zone
+    for (let i = 0; i < 15; i++) {               // ~600ms of continuous drag
         shim.emit(action, { direction: "left", distance: 20 * i, ms: 40 * i });
         await sleep(40);
     }
+    shim.emit(tapAction, {});                    // finger up, same zone
+    const count = readCount(shim);
     const afterDrag = readIndex(shim);
-    check(appId + ": one 600ms drag steps exactly once",
-          afterDrag === before + 1,
-          "index " + before + " -> " + afterDrag);
+    check(appId + ": one 600ms drag over a tap zone steps exactly once",
+          steppedOnce(before, afterDrag, count),
+          "index " + before + " -> " + afterDrag + " of " + count);
 
-    // Finger lifted: after the quiet window the next swipe must be live again.
-    await sleep(300);
+    await sleep(500);
+    const beforeSecond = readIndex(shim);
+    shim.emit(tapAction, {});
     shim.emit(action, { direction: "left", distance: 20, ms: 40 });
-    const afterSecond = readIndex(shim);
-    check(appId + ": a second swipe after the quiet window still works",
-          afterSecond === afterDrag + 1,
-          "index " + afterDrag + " -> " + afterSecond);
+    shim.emit(tapAction, {});
+    check(appId + ": a second swipe after the quiet window steps exactly once",
+          steppedOnce(beforeSecond, readIndex(shim), count),
+          "index " + beforeSecond + " -> " + readIndex(shim) + " of " + count);
 
-    // Vertical gestures belong to the system's swipe-up-home; never consumed.
+    await sleep(500);
+    const beforeTap = readIndex(shim);
+    shim.emit(tapAction, {});                    // a clean tap (no drag) still works
+    check(appId + ": a plain tap on the nav zone still steps once",
+          steppedOnce(beforeTap, readIndex(shim), count),
+          "index " + beforeTap + " -> " + readIndex(shim) + " of " + count);
+
+    await sleep(500);
     const beforeV = readIndex(shim);
-    await sleep(300);
     shim.emit(action, { direction: "up", distance: 120, ms: 100 });
     check(appId + ": vertical gesture is ignored (system home gesture)",
           readIndex(shim) === beforeV);
@@ -150,10 +165,12 @@ async function swipeStepRequests(appId, action, pathFragment) {
     await settle(shim);
 
     const before = requests.filter((r) => r.includes(pathFragment)).length;
+    shim.emit("tminus.next", {});                // finger down on the nav zone
     for (let i = 0; i < 15; i++) {
         shim.emit(action, { direction: "left", distance: 20 * i, ms: 40 * i });
         await sleep(40);
     }
+    shim.emit("tminus.next", {});                // finger up
     await settle(shim);
     const issued = requests.filter((r) => r.includes(pathFragment)).length - before;
     check(appId + ": one 600ms drag issues exactly one step request",
@@ -177,8 +194,9 @@ async function swipeStepRequests(appId, action, pathFragment) {
 (async function main() {
     const APPS = ["tunastreet.agent", "tunastreet.tminus", "tunastreet.xviewer", "tunastreet.racing"];
 
-    await swipeBurst("tunastreet.xviewer", "xviewer.gesture",
-                     (s) => Number((s.renderer.text("/home/topbar/pos") || "1/1").split("/")[0]));
+    await swipeBurst("tunastreet.xviewer", "xviewer.gesture", "xviewer.next",
+                     (s) => Number((s.renderer.text("/home/topbar/pos") || "1/1").split("/")[0]),
+                     (s) => Number((s.renderer.text("/home/topbar/pos") || "1/1").split("/")[1]));
     await swipeStepRequests("tunastreet.tminus", "tminus.gesture", "/TMINUS/STEP");
 
     for (const a of APPS) { asciiOnly(a); }

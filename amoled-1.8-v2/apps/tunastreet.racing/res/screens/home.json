@@ -507,10 +507,10 @@
                     "id": "g_name",
                     "placement": {
                         "mode": "absolute",
-                        "x": 8,
-                        "y": 4,
-                        "width": 120,
-                        "height": 26
+                        "x": 20,
+                        "y": 14,
+                        "width": 108,
+                        "height": 24
                     },
                     "layout": {
                         "type": "none"
@@ -530,9 +530,9 @@
                     "placement": {
                         "mode": "absolute",
                         "x": 130,
-                        "y": 4,
+                        "y": 14,
                         "width": 76,
-                        "height": 26
+                        "height": 24
                     },
                     "layout": {
                         "type": "none"
@@ -555,9 +555,9 @@
                     "placement": {
                         "mode": "absolute",
                         "x": 206,
-                        "y": 4,
-                        "width": 60,
-                        "height": 26
+                        "y": 14,
+                        "width": 48,
+                        "height": 24
                     },
                     "layout": {
                         "type": "none"
@@ -576,8 +576,8 @@
                     "id": "g_score",
                     "placement": {
                         "mode": "absolute",
-                        "x": 266,
-                        "y": 0,
+                        "x": 255,
+                        "y": 14,
                         "width": 96,
                         "height": 34
                     },
@@ -599,9 +599,9 @@
                     "placement": {
                         "mode": "absolute",
                         "x": 8,
-                        "y": 32,
+                        "y": 38,
                         "width": 200,
-                        "height": 22
+                        "height": 18
                     },
                     "layout": {
                         "type": "none"
@@ -621,9 +621,9 @@
                     "placement": {
                         "mode": "absolute",
                         "x": 208,
-                        "y": 32,
+                        "y": 38,
                         "width": 152,
-                        "height": 22
+                        "height": 18
                     },
                     "layout": {
                         "type": "none"

@@ -137,6 +137,12 @@ function checkScreen(file, doc) {
     const T = TOKENS;
 const LADDER = (T.text && T.text.font_ladder) || [];
 const LINE_H = (T.text && T.text.line_height) || {};
+const CORNER_R = (T.safe_area && T.safe_area.corner_radius) || 0;
+// Horizontal inset the rounded glass demands at `d` px from the top/bottom edge.
+function cornerInset(d) {
+    if (!CORNER_R || d >= CORNER_R || d < 0) { return 0; }
+    return Math.ceil(CORNER_R - Math.sqrt(Math.max(0, CORNER_R * CORNER_R - (CORNER_R - d) * (CORNER_R - d))));
+}
     const rel = path.relative(path.resolve(__dirname, "..", ".."), file);
 
     walk(doc.root, null, (node, parent) => {
@@ -243,6 +249,33 @@ const LINE_H = (T.text && T.text.line_height) || {};
                 typeof declaredH === "number" && declaredH < need) {
                 report(rel, node._path, "R9", "label box is " + declaredH + "px tall but Montserrat " + lfs +
                        " has a line height of " + need + "px -- descenders will be clipped");
+            }
+        }
+
+        // R10: edge-anchored text sitting inside a rounded corner.
+        // The glass is a rounded rectangle, so near the top and bottom edges the
+        // usable width is less than the panel width. Text at the normal 16px
+        // edge inset but only a few pixels down is inside the arc and reads as
+        // jammed into the curve -- reported twice on x-viewer's "n/N" counter,
+        // which sat at x=16,y=2 and needs 38px of inset there.
+        //
+        // Only LEFT- and RIGHT-aligned text is at risk: a centred label's box may
+        // span the full width while its glyphs sit safely in the middle.
+        if (node.type === "label" && CORNER_R) {
+            const align = (node.style && node.style.textAlign) || "left";
+            const bx = node._cx || 0, by = node._cy || 0;
+            const bw = node._cw || 0, bh = node._ch || 0;
+            const dTop = by, dBottom = T.device.height - (by + bh);
+            const d = Math.min(dTop < 0 ? 0 : dTop, dBottom < 0 ? 0 : dBottom);
+            const need = cornerInset(d);
+            if (need > 0 && align !== "center") {
+                if (align === "left" && bx < need) {
+                    report(rel, node._path, "R10", "left-aligned text starts at x=" + bx + " but the rounded corner needs x>=" +
+                           need + " this close to the edge (" + d + "px). Move it down or in.");
+                } else if (align === "right" && (T.device.width - (bx + bw)) < need) {
+                    report(rel, node._path, "R10", "right-aligned text ends at x=" + (bx + bw) + " but the rounded corner needs it to end by x<=" +
+                           (T.device.width - need) + " this close to the edge (" + d + "px). Move it down or in.");
+                }
             }
         }
 

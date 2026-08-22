@@ -29,16 +29,12 @@
     // reads as "the swipe is broken" rather than "the swipe is too eager".
     // Same 350 ms cooldown the X viewer landed on in #193. Taps are immediate.
     var NAV_COOLDOWN_MS = 350;
-    // A drag emits gesture events for as long as the finger moves; one swipe is
-    // "over" only once this long passes with no further gesture event.
-    var GESTURE_QUIET_MS = 220;
 
     var event = null;
     var bootUnix = 0;
     var ticks = 0;
     var navSeq = 0;
     var lastNavMs = 0;
-    var lastGestureMs = 0;      // burst latch for swipes (see gestureAllowed)
     var pendingHttp = {};
     var inFlight = false;
     var retryTimerId = null;
@@ -218,23 +214,25 @@
     /**
      * True at most once per continuous drag -- the swipe half of the guard.
      *
-     * navAllowed() is a LEADING-EDGE cooldown: it stamps the clock only when it
-     * lets something through. That is right for taps (two events, ~0 ms apart)
-     * and wrong for swipes. The touch layer emits gesture events for the whole
-     * time a finger is moving, so a slow drag lasting a second clears a 350 ms
-     * window two or three times over and steps two or three cards -- "swipe
-     * left or right seems to swipe too much".
+     * Shares lastNavMs with navAllowed() ON PURPOSE. One finger movement across
+     * the card produces BOTH kinds of event: the prev/next tap zones cover the
+     * halves of the media card and fire on `pressed` AND `released`, and the
+     * touch layer emits gesture events for as long as the finger moves. Give
+     * swipes their own clock and those become two independent budgets, so one
+     * swipe scores once as a tap and again as a gesture -- which is exactly how
+     * a "fix" for over-swiping turned 3 cards per drag into 6.
      *
-     * This one stamps the clock on EVERY gesture event, accepted or rejected,
-     * so each event pushes the quiet window further out. One drag therefore
-     * steps exactly once no matter how long or slow it is, and the next swipe
-     * is live GESTURE_QUIET_MS after the finger stops -- not after it started.
+     * The difference from navAllowed() is not the clock, it is the stamping:
+     * navAllowed() is leading-edge and stamps only when it lets something
+     * through, which is right for a tap (two events, ~0 ms apart). This stamps
+     * on EVERY gesture event, accepted or rejected, so a long drag keeps pushing
+     * the window out and settles to exactly one step however slow it is.
      */
     function gestureAllowed() {
         var t = Date.now();
-        var gap = t - lastGestureMs;
-        lastGestureMs = t;              // extend the burst even when rejecting
-        return gap < 0 || gap >= GESTURE_QUIET_MS;
+        var gap = t - lastNavMs;
+        lastNavMs = t;                  // ALWAYS extend, accepted or not
+        return gap < 0 || gap >= NAV_COOLDOWN_MS;
     }
 
     function pad2(n) {

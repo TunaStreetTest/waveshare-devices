@@ -67,7 +67,7 @@
                 "x": 0,
                 "y": 0,
                 "width": 368,
-                "height": 46
+                "height": 52
             },
             "layout": {
                 "type": "none"
@@ -89,7 +89,7 @@
                     "placement": {
                         "mode": "absolute",
                         "x": 16,
-                        "y": 10,
+                        "y": 18,
                         "width": 210,
                         "height": 28
                     },
@@ -111,7 +111,7 @@
                     "placement": {
                         "mode": "absolute",
                         "x": 226,
-                        "y": 12,
+                        "y": 20,
                         "width": 126,
                         "height": 24
                     },

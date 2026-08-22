@@ -282,6 +282,28 @@
         if (fn !== "RequestAsync" && fn !== "Request") {
             return { success: false, error: "unimplemented Http." + fn };
         }
+        // Reject exactly what the device rejects. The Http service deserialises
+        // Request.method with describe_from_json, which for a described enum
+        // uses the STRICT describe_string_to_enum -- so the string has to be the
+        // enumerator name verbatim ("Get", not "GET"/"get"). The flexible
+        // snake_case fallback is NOT used on this path, and would not save
+        // "GET" anyway: to_snake_case("GET") is "g_e_t", not "get".
+        //
+        // Without this check the harness is MORE permissive than the board: it
+        // hands the method to fetch(), which accepts any casing, so an app whose
+        // requests the device silently drops still looks healthy here. That is
+        // exactly how tunastreet.agent shipped with method:"GET" and never once
+        // reached its backend while passing every simulator run.
+        var HTTP_METHODS = ["Get", "Post", "Put", "Patch", "Delete", "Head"];
+        var method = (p.Request && p.Request.method) || "Get";
+        if (HTTP_METHODS.indexOf(method) === -1) {
+            return {
+                success: false,
+                error: "invalid Request.method " + JSON.stringify(method) +
+                       " -- the device parses this as a described enum and needs one of: " +
+                       HTTP_METHODS.join(", ")
+            };
+        }
         var id = this.nextReqId++;
         // A download to a $brookesiaStoragePath marker is how an app gets a
         // picture onto the device: it fetches to a cache file and later points

@@ -31,6 +31,25 @@ TARGET_H_MAX = TOUCH["target_h_max"]    # 88
 TARGET_GAP_MIN = TOUCH["target_gap_min"]  # 40
 TARGET_W_FULL = TOUCH["target_w_full"]  # 320
 
+SAFE = _T["safe_area"]
+CORNER_RADIUS = SAFE["corner_radius"]
+
+
+def corner_inset(d):
+    """Horizontal inset the rounded glass demands at `d` px from the top or
+    bottom edge. 0 once you are past the corner arc.
+
+    The panel is a rounded rectangle: near the edges the usable width is less
+    than the nominal 368, so a label at the normal 16px edge inset but only a
+    couple of pixels down sits inside the curve.
+    """
+    import math
+    r = CORNER_RADIUS
+    if d >= r or d < 0:
+        return 0
+    return int(math.ceil(r - math.sqrt(max(0.0, r * r - (r - d) * (r - d)))))
+
+
 SPACE = _T["space"]
 EDGE = SPACE["edge"]                    # 16
 ROW = SPACE["row"]                      # 12
