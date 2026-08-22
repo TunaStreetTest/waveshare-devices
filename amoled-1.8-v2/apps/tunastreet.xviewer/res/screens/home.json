@@ -321,7 +321,7 @@
                         "mode": "absolute",
                         "x": 0,
                         "y": 0,
-                        "width": 84,
+                        "width": 116,
                         "height": 84
                     },
                     "layout": {
@@ -343,7 +343,7 @@
                             "id": "t_like_img",
                             "placement": {
                                 "mode": "absolute",
-                                "x": 13,
+                                "x": 29,
                                 "y": 6,
                                 "width": 58,
                                 "height": 58
@@ -366,7 +366,7 @@
                                 "mode": "absolute",
                                 "x": 0,
                                 "y": 62,
-                                "width": 84,
+                                "width": 116,
                                 "height": 20
                             },
                             "layout": {
@@ -411,9 +411,9 @@
                     "id": "t_views",
                     "placement": {
                         "mode": "absolute",
-                        "x": 92,
+                        "x": 126,
                         "y": 0,
-                        "width": 88,
+                        "width": 116,
                         "height": 84
                     },
                     "layout": {
@@ -437,7 +437,7 @@
                                 "mode": "absolute",
                                 "x": 0,
                                 "y": 10,
-                                "width": 88,
+                                "width": 116,
                                 "height": 34
                             },
                             "layout": {
@@ -459,7 +459,7 @@
                                 "mode": "absolute",
                                 "x": 0,
                                 "y": 46,
-                                "width": 88,
+                                "width": 116,
                                 "height": 20
                             },
                             "layout": {
@@ -481,9 +481,9 @@
                     "id": "t_comments",
                     "placement": {
                         "mode": "absolute",
-                        "x": 188,
+                        "x": 252,
                         "y": 0,
-                        "width": 88,
+                        "width": 116,
                         "height": 84
                     },
                     "layout": {
@@ -507,7 +507,7 @@
                                 "mode": "absolute",
                                 "x": 0,
                                 "y": 10,
-                                "width": 88,
+                                "width": 116,
                                 "height": 34
                             },
                             "layout": {
@@ -529,7 +529,7 @@
                                 "mode": "absolute",
                                 "x": 0,
                                 "y": 46,
-                                "width": 88,
+                                "width": 116,
                                 "height": 20
                             },
                             "layout": {
@@ -543,74 +543,6 @@
                             "labelProps": {
                                 "text": "REPLIES"
                             }
-                        }
-                    ]
-                },
-                {
-                    "type": "container",
-                    "id": "t_clear",
-                    "placement": {
-                        "mode": "absolute",
-                        "x": 284,
-                        "y": 0,
-                        "width": 84,
-                        "height": 84
-                    },
-                    "layout": {
-                        "type": "none"
-                    },
-                    "style": {
-                        "bgColor": "#ef4444",
-                        "padding": 0,
-                        "radius": 12
-                    },
-                    "commonProps": {
-                        "scrollable": false,
-                        "pressLock": true,
-                        "clickable": true
-                    },
-                    "children": [
-                        {
-                            "type": "label",
-                            "id": "t_clear_t",
-                            "placement": {
-                                "mode": "absolute",
-                                "x": 0,
-                                "y": 26,
-                                "width": 84,
-                                "height": 32
-                            },
-                            "layout": {
-                                "type": "none"
-                            },
-                            "style": {
-                                "textColor": "#f0f0f0",
-                                "fontSize": 20,
-                                "textAlign": "center"
-                            },
-                            "labelProps": {
-                                "text": "CLEAR"
-                            }
-                        }
-                    ],
-                    "events": [
-                        {
-                            "type": "pressed",
-                            "effects": [
-                                {
-                                    "type": "emitAction",
-                                    "action": "xviewer.clear"
-                                }
-                            ]
-                        },
-                        {
-                            "type": "released",
-                            "effects": [
-                                {
-                                    "type": "emitAction",
-                                    "action": "xviewer.clear"
-                                }
-                            ]
                         }
                     ]
                 }

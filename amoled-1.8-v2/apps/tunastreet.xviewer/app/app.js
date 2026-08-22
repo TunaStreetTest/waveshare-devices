@@ -8,7 +8,7 @@
  *
  * #198 rebuilt res/screens/home.json on the panelkit design system
  * (uikit/gen_xviewer_screen.py in DesktopShare's files/xviewer/) -- bigger
- * text, a real bottom "tools" bar (LIKE/VIEWS/COMMENTS/CLEAR), and prev/next
+ * text, a real bottom "tools" bar (LIKE/VIEWS/COMMENTS), and prev/next
  * moved onto the media card itself as two big tap zones instead of a 40x36
  * corner glyph. This file's node paths were updated to match; every
  * setText/setBinding/SetViewSrc path below must resolve in that generated
@@ -29,7 +29,6 @@
     // ---------------------------------------------------------------- config
     var BACKEND = "http://192.168.1.121:8091";
     var FEED_PATH = "/xviewer/feed";
-    var FEED_REFRESH_PATH = "/xviewer/feed?refresh=1"; // CLEAR: bypass the backend cache
     var ACTION_PATH = "/xviewer/action";
     var SCREEN = "/home";
     var FEED_REFRESH_MS = 60000;
@@ -51,7 +50,6 @@
     var likeInFlight = false;
     var lastNavMs = 0;          // gesture debounce clock (Date.now deltas)
     var feedInFlight = false;
-    var forceFirstOnFeed = false; // CLEAR: jump to card 0 instead of keeping place
     var refreshTimerId = null;
     var retryTimerId = null;
     var httpServiceHandle = null;
@@ -336,17 +334,14 @@
     }
 
     // ---------------------------------------------------------------- feed
-    function fetchFeed(refresh) {
+    function fetchFeed() {
         if (feedInFlight) {
             return;
         }
         feedInFlight = true;
-        if (refresh) {
-            forceFirstOnFeed = true;
-        }
-        log("fetching feed", refresh ? "(refresh)" : "");
+        log("fetching feed");
         httpRequest({
-            url: BACKEND + (refresh ? FEED_REFRESH_PATH : FEED_PATH),
+            url: BACKEND + FEED_PATH,
             method: "Get",
             timeout_ms: 8000,
             max_response_size: 262144
@@ -381,11 +376,7 @@
         }
         var currentId = posts[idx] ? posts[idx].id : null;
         posts = list;
-        if (forceFirstOnFeed) {
-            // CLEAR: always land on the first card, don't try to keep place.
-            forceFirstOnFeed = false;
-            idx = 0;
-        } else if (currentId !== null) {
+        if (currentId !== null) {
             // keep the user's place across refreshes when the post is still there
             for (var i = 0; i < posts.length; i++) {
                 if (posts[i].id === currentId) {
@@ -546,20 +537,6 @@
         render();
     }
 
-    /**
-     * CLEAR tool: the backend has no server-side "clear" concept, only a
-     * cache-bypassing refetch (?refresh=1) -- so CLEAR means "drop the
-     * cached feed and reload from the top," landing on card 0 regardless of
-     * where the user was (forceFirstOnFeed, consumed in onFeedResponse).
-     * feedInFlight is the existing debounce: a tap while a fetch is already
-     * running is a no-op, same as the periodic/retry timers.
-     */
-    function doClear() {
-        log("clear tapped");
-        setStatus("clearing...");
-        fetchFeed(true);
-    }
-
     function toggleLike() {
         var p = posts[idx];
         if (!p || likeInFlight) {
@@ -630,7 +607,7 @@
                 }
 
                 // GUI actions (declared in res/screens/home.json).
-                var actions = ["xviewer.gesture", "xviewer.like", "xviewer.prev", "xviewer.next", "xviewer.clear"];
+                var actions = ["xviewer.gesture", "xviewer.like", "xviewer.prev", "xviewer.next"];
                 for (var j = 0; j < actions.length; j++) {
                     var subResult = svcCall("SystemGui", "SubscribeAction", { Action: actions[j] });
                     if (!subResult.success) {
@@ -679,8 +656,6 @@
                     if (navAllowed()) { goTo(idx - 1); }
                 } else if (action === "xviewer.like") {
                     toggleLike();
-                } else if (action === "xviewer.clear") {
-                    doClear();
                 }
             } catch (e) {
                 log("on_action error:", String(e));

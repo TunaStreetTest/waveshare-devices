@@ -19,7 +19,7 @@ one of those was the "text/buttons too small" complaint. Regenerate with
 | `topbar` | 0-28 | `pos` ("n/N", left) + `status` (error/loading text, right) |
 | `media` | 28-248 | 368x220 `card_img`, plus `nav_prev`/`nav_next` tap zones |
 | `post_text` | 248-364 | wrapped post body, 20px |
-| `toolbar` | 364-448 | `t_like` (heart image + count) / `t_views` / `t_comments` / `t_clear` |
+| `toolbar` | 364-448 | `t_like` (heart image + count) / `t_views` / `t_comments` — three equal 116px boxes |
 
 ## Backend contract (`http://192.168.1.121:8091`)
 
@@ -28,7 +28,7 @@ one of those was the "text/buttons too small" complaint. Regenerate with
 | `GET /xviewer/feed` | `{account, cached, count, panel, posts:[{id, author, text, ts, media_type, img, liked, metrics:{likes,reposts,views,replies}}]}` — `img` is a URL path (`/xviewer/img/<id>.jpg`) or `null`. `replies` is new (#198); the app treats a missing value as `0`. The app also accepts a bare top-level array, `img: true`, and absolute `img` URLs. |
 | `GET /xviewer/img/<id>.jpg` | pre-scaled 368x220 baseline JPEG (~17 KB) |
 | `POST /xviewer/action` | body `{"id":"...","action":"like"\|"unlike"}` → `{"liked":bool}` |
-| `GET /xviewer/feed?refresh=1` | forces a re-fetch from X, bypassing the cache. **This is what the CLEAR tool maps to** — there's no separate server-side "clear," so CLEAR means "drop the cached feed and reload from the top," landing back on card 0. |
+| `GET /xviewer/feed?refresh=1` | forces a re-fetch from X, bypassing the cache. **Nothing on the device calls this** — it was the CLEAR tool's endpoint, and CLEAR is gone (#218). |
 
 ## Gestures / input
 
@@ -68,8 +68,6 @@ one of those was the "text/buttons too small" complaint. Regenerate with
   imageSet) because the system font (Telex-Regular) has no heart glyph; the
   likes count also recolors to `#f91880` via a `style.textColor` binding
   (`likeColor`).
-- **Tap CLEAR** (`t_clear`) = `GET /xviewer/feed?refresh=1`, then jump to
-  card 0 regardless of where you were — see the backend contract note above.
 - **VIEWS / COMMENTS** (`t_views` / `t_comments`) are display-only readouts
   (views count, and the backend's `replies` field) — there's no
   device-side action for either.
@@ -158,9 +156,27 @@ re-visiting a post reuses the file without a re-download. Two safety rules:
 
 Feed refresh runs every 60 s (`SystemTimer` periodic `xv_refresh`), errors
 show "backend unreachable - retrying" on the status line and arm a 10 s
-one-shot retry (`xv_retry`). Current position is kept across refreshes by
-post id — except a CLEAR-triggered refresh, which always lands on card 0
-(`forceFirstOnFeed` in app.js).
+one-shot retry (`xv_retry`). Current position is always kept across
+refreshes by post id.
+
+### The CLEAR tool was removed (#218)
+
+A fourth toolbar box, `t_clear`, used to sit at x=284 and emit
+`xviewer.clear`. Two things were wrong with it and only one was fixable:
+
+- Every panelkit tap target emits its action on **both** `pressed` and
+  `released` (`uikit/panelkit.py`'s `_tap_events`, deliberate — pressed for
+  feel, released as the catch-all). `doClear()`'s only guard was
+  `feedInFlight`, which the second emit outran, so one tap ran **two** full
+  feed refetches. Reproduced under `tools/simulator` on the fixture backend.
+- The backend has no server-side "clear" at all — only `?refresh=1`, which
+  returns the same 25 posts. So a tap's entire visible effect was
+  `forceFirstOnFeed` snapping you back to card 1: *"clear button doesnt
+  actually clear, gets stuck on first one."*
+
+The 60 s periodic refresh already does the only real work the button did, so
+the tool was deleted rather than relabelled, and its 84px went back to the
+three tools that remain.
 
 ## Files
 
