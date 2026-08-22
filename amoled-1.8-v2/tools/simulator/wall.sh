@@ -24,29 +24,40 @@ CHROMIUM="${CHROMIUM:-/snap/bin/chromium}"
 
 # Layout: a 2x2 block of panels on the right of the screen, leaving the left
 # half for the session terminal -- the arrangement Steven works this device in,
-# so the four panels and the conversation are readable at once. Quadrants are
-# agent / tminus over racing / xviewer.
+# so the four panels and the conversation are readable at once.
 #
-# Origin and cell size are env-overridable for a different screen:
-#   WALL_X0=1110 WALL_Y0=4 WIN_W=400 WIN_H=530 ./wall.sh tile
-X0="${WALL_X0:-1110}"      # left edge of the block
-Y0="${WALL_Y0:-4}"         # top edge of the block
-WIN_W="${WIN_W:-400}"      # 368 px of glass plus Chromium's frame
-# 530, not 497: racing's cell now also carries the autopilot on/off button
-# (#219), and the panel fits itself to whatever height is left over -- at 497
-# that row put racing at 0.97x while the other three sat at 1.01x. At 530 all
-# four measure 1.01x. Two rows of 530 plus the origin is 1065 on this
-# 3840x1080 desk, so the block still clears the bottom edge.
-WIN_H="${WIN_H:-530}"      # 448 px of glass, frame/title bar, and the driver row
-COL=$((X0 + WIN_W + 2))
-ROW=$((Y0 + WIN_H + 1))
+# Quadrants and the two row heights below are HIS, measured off the live
+# windows 2026-08-22 and confirmed: racing / xviewer across the TOP in the tall
+# row (the two being actively watched), agent / tminus below in the short one.
+# The rows are deliberately different heights, which is why there is no single
+# WIN_H any more -- `tile` used to flatten both rows to one size and put the
+# wrong pair on top, i.e. it stomped this layout every time it ran.
+#
+# These are REQUESTED bounds, and under WSLg a window reports back +6,+27 from
+# what CDP was asked for (the frame offset -- measured on this desk, stable and
+# non-cumulative across repeated tiles). The constants below are pre-compensated
+# so the block lands where Steven's hand-placed one sat, i.e. reading back at
+# 1105,27 / 1517,27 over 1105,615 / 1517,615.
+#
+# Origin and cell sizes are env-overridable for a different screen:
+#   WALL_X0=1099 WALL_Y0=0 WALL_Y1=588 WIN_W=400 WIN_H_TOP=552 WIN_H_BOT=395 ./wall.sh tile
+X0="${WALL_X0:-1099}"          # left edge of the block
+Y0="${WALL_Y0:-0}"             # top edge of the block
+WIN_W="${WIN_W:-400}"          # 368 px of glass plus Chromium's frame
+WIN_H_TOP="${WIN_H_TOP:-552}"  # tall row: full glass plus the driver-button row
+WIN_H_BOT="${WIN_H_BOT:-395}"  # short row: the panel scales itself down to fit
+COL=$((X0 + WIN_W + 12))       # second column
+ROW="${WALL_Y1:-588}"          # top edge of the second row
+# Since #219 the panel fits itself to whatever the window gives it, so the
+# uneven rows cost nothing: the top row renders about 1.1x, the short bottom
+# row about 0.82x, and neither clips.
 
-# name | sim port | backend to proxy | debug port | window x:y | extra query
+# name | sim port | backend to proxy | debug port | window x:y:w:h | extra query
 WALL=(
-  "agent|8098|127.0.0.1:8094|9343|$X0:$Y0|"
-  "tminus|8096|127.0.0.1:8092|9344|$COL:$Y0|"
-  "racing|8097|127.0.0.1:8093|9341|$X0:$ROW|&fixture=1&drive=examples/racing-bot.js&claude=1"
-  "xviewer|8095|127.0.0.1:8091|9342|$COL:$ROW|"
+  "racing|8097|127.0.0.1:8093|9341|$X0:$Y0:$WIN_W:$WIN_H_TOP|&fixture=1&drive=examples/racing-bot.js&claude=1"
+  "xviewer|8095|127.0.0.1:8091|9342|$COL:$Y0:$WIN_W:$WIN_H_TOP|"
+  "agent|8098|127.0.0.1:8094|9343|$X0:$ROW:$WIN_W:$WIN_H_BOT|"
+  "tminus|8096|127.0.0.1:8092|9344|$COL:$ROW:$WIN_W:$WIN_H_BOT|"
 )
 
 mkdir -p "$RUN"
@@ -96,10 +107,10 @@ start_windows() {
 # once the window exists. Node 24 speaks WebSocket natively -- no puppeteer.
 tile() {
   for row in "${WALL[@]}"; do
-    local name dbg xy x y
+    local name dbg xy x y w h
     name=$(field "$row" 1); dbg=$(field "$row" 4); xy=$(field "$row" 5)
-    x="${xy%%:*}"; y="${xy##*:}"
-    PW_DBG="$dbg" PW_X="$x" PW_W="$WIN_W" PW_H="$WIN_H" PW_Y="$y" \
+    IFS=: read -r x y w h <<< "$xy"
+    PW_DBG="$dbg" PW_X="$x" PW_W="$w" PW_H="$h" PW_Y="$y" \
       node -e '
         const http = require("http");
         const dbg = process.env.PW_DBG;
@@ -127,7 +138,7 @@ tile() {
             ws.close();
           });
         }).on("error", () => {});
-      ' 2>/dev/null && echo "  tiled $name at ${x},${y}"
+      ' 2>/dev/null && echo "  tiled $name at ${x},${y} (${w}x${h})"
   done
 }
 

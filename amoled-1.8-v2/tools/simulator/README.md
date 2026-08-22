@@ -36,24 +36,36 @@ proxying to that app's real LAN backend so the panels show live data, arranged
 as a **2×2 block on the right of the screen** — the session terminal sits down
 the left, so the conversation and all four panels are readable at once:
 
-| App | sim port | proxies to | window x,y |
-|---|---|---|---|
-| agent | 8098 | `:8094` | 1110, 4 |
-| tminus | 8096 | `:8092` | 1512, 4 |
-| racing | 8097 | `:8093` (fixture + autopilot, see below) | 1110, 502 |
-| xviewer | 8095 | `:8091` | 1512, 502 |
+| App | sim port | proxies to | requested x,y | cell |
+|---|---|---|---|---|
+| racing | 8097 | `:8093` (fixture + autopilot, see below) | 1099, 0 | 400×552 |
+| xviewer | 8095 | `:8091` | 1511, 0 | 400×552 |
+| agent | 8098 | `:8094` | 1099, 588 | 400×395 |
+| tminus | 8096 | `:8092` | 1511, 588 | 400×395 |
 
-Cells are 400×530 — the 368×448 glass, Chromium's frame, and the driver-button
-row racing's cell now carries (#219; at the old 497 that row put racing at
-0.97x while the other three sat at 1.01x — at 530 all four measure 1.01x). On
-a different screen, override the block:
-`WALL_X0=… WALL_Y0=… WIN_W=… WIN_H=… ./wall.sh tile`. `start` is idempotent (it skips whatever is already up), `stop`
-closes what it started, `status` prints the current state, and `tile` re-applies
-positions without restarting anything.
+**The two rows are deliberately different heights, and the pairing is not
+arbitrary.** This is Steven's own arrangement, measured off the live windows
+and made reproducible 2026-08-22: the two panels being actively watched
+(racing, xviewer) get the tall top row, the two being monitored (agent,
+tminus) the short bottom one. Before this, `tile` flattened both rows to one
+`WIN_H` and put the wrong pair on top — it stomped the layout every time it
+ran. Since #219 the panel fits itself to whatever the window gives it, so the
+uneven rows cost nothing: the top row renders at 1.01x, the short bottom row
+at 0.82x, and neither clips.
 
-**A window keeps serving the page it loaded.** After editing a screen generator
-or an `app.js`, hard-reload the windows (or `stop`/`start` the wall) — otherwise
-you are reviewing a build from several versions ago.
+The x,y above are what CDP is **asked** for. Under WSLg a window reports back
+`+6,+27` from the request (the frame offset — stable, and not cumulative
+across repeated tiles), so the constants are pre-compensated and the block
+reads back at 1105,27 / 1517,27 over 1105,615 / 1517,615. On a different
+screen, override it: `WALL_X0=… WALL_Y0=… WALL_Y1=… WIN_W=… WIN_H_TOP=…
+WIN_H_BOT=… ./wall.sh tile`. `start` is idempotent (it skips whatever is
+already up), `stop` closes what it started, `status` prints the current state,
+and `tile` re-applies positions without restarting anything.
+
+**A window keeps serving the page it loaded.** After editing `panel.html`, a
+screen generator, or an `app.js`, hard-reload the windows (CDP `Page.reload`
+with `ignoreCache`, or `stop`/`start` the wall) — otherwise you are reviewing a
+build from several versions ago.
 
 **Racing runs on its fixture, deliberately.** The autopilot against the live
 backend would POST real telemetry into the pipeline and land bot scores on the
