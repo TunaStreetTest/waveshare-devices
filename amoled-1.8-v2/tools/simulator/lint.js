@@ -135,6 +135,8 @@ function staticCheck(pkg) {
 
 function checkScreen(file, doc) {
     const T = TOKENS;
+const LADDER = (T.text && T.text.font_ladder) || [];
+const LINE_H = (T.text && T.text.line_height) || {};
     const rel = path.relative(path.resolve(__dirname, "..", ".."), file);
 
     walk(doc.root, null, (node, parent) => {
@@ -209,6 +211,38 @@ function checkScreen(file, doc) {
             const cp = node.commonProps || {};
             if (!Object.prototype.hasOwnProperty.call(cp, "clickable")) {
                 report(rel, node._path, "R6", "image does not declare commonProps.clickable -- it defaults to true and will swallow taps meant for whatever is underneath");
+            }
+        }
+
+        // R8: a fontSize that is not on the compiled Montserrat ladder.
+        // There is no FreeType and no TinyTTF in this build, so a size is not
+        // scaled to order -- get_builtin_font() (gui/brookesia_gui_lvgl/src/
+        // style_font.cpp) returns an exact match or else the closest SMALLER
+        // compiled face. An off-ladder size therefore renders silently smaller
+        // than it reads here: the shell's 11sp clock was drawn at 8px, and a
+        // 56px "hero" is really 48px. Rungs come from tokens.json text.font_ladder.
+        const fs = node.style && node.style.fontSize;
+        if (typeof fs === "number" && LADDER.indexOf(fs) === -1) {
+            let drawn = null;
+            for (const rung of LADDER) { if (rung <= fs) { drawn = rung; } }
+            report(rel, node._path, "R8", "fontSize " + fs + " is not a compiled Montserrat size -- it will render at " +
+                   (drawn === null ? "the LVGL default (no smaller face exists)" : drawn + "px") +
+                   ". Use one of: " + LADDER.join(", "));
+        }
+
+        // R9: a label box shorter than the font's real line height, which
+        // clips descenders. Heights come from tokens.json text.line_height --
+        // the actual .line_height in each lv_font_montserrat_<n>.c, since the
+        // desktop habit of assuming ~1.3x the nominal size is wrong here (the
+        // real ratio is ~1.1x) and both over- and under-reports.
+        {
+            const lfs = node.style && node.style.fontSize;
+            const declaredH = node.placement && node.placement.height;
+            const need = LINE_H[String(lfs)];
+            if (node.type === "label" && typeof need === "number" &&
+                typeof declaredH === "number" && declaredH < need) {
+                report(rel, node._path, "R9", "label box is " + declaredH + "px tall but Montserrat " + lfs +
+                       " has a line height of " + need + "px -- descenders will be clipped");
             }
         }
 

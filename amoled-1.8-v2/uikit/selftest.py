@@ -102,7 +102,11 @@ def test_dirty_fixture_flags_known_bad_nodes():
         if rule == "R3":
             text_floor_sites.add(node_id)
     assert require_valid_press_sites == {"nav_prev", "likebox", "nav_next"}, require_valid_press_sites
-    assert text_floor_sites == {"brand", "status", "reposts", "views", "pos"}, text_floor_sites
+    # "likes" is fontSize 15. That was exactly the old floor, so it used to
+    # pass; the floor moved to 16 when the compiled Montserrat ladder went into
+    # tokens.json (15 has no compiled face and was being drawn at 12), so it is
+    # now correctly flagged along with the rest.
+    assert text_floor_sites == {"brand", "status", "reposts", "views", "pos", "likes"}, text_floor_sites
 
 
 def test_undeclared_image_over_tap_zone_is_flagged():

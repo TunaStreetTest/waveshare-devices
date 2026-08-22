@@ -20,7 +20,9 @@ W = DEVICE["width"]
 H = DEVICE["height"]
 
 TEXT = _T["text"]
-TEXT_FLOOR = TEXT["floor"]              # 15 -- hard floor, not a suggestion (#205)
+TEXT_FLOOR = TEXT["floor"]              # 16 -- hard floor, not a suggestion (#205)
+FONT_LADDER = tuple(TEXT["font_ladder"])  # the only sizes the board can draw
+LINE_HEIGHT = {int(k): v for k, v in TEXT["line_height"].items()}
 TEXT_BANDS = TEXT["bands"]              # role -> [min, max] fontSize
 
 TOUCH = _T["touch"]
@@ -85,6 +87,17 @@ def check_size(role, size):
     if not (lo <= size <= hi):
         raise ValueError(
             "fontSize %d is outside the %r band [%d, %d]" % (size, role, lo, hi))
+    if size not in FONT_LADDER:
+        # There is no FreeType/TinyTTF on this build, so a size is not scaled to
+        # order -- get_builtin_font() returns the closest SMALLER compiled face.
+        # An off-ladder size renders silently smaller than it reads here.
+        drawn = max([r for r in FONT_LADDER if r < size], default=None)
+        raise ValueError(
+            "fontSize %d is not a compiled Montserrat size -- it would render at "
+            "%s. Use one of: %s (tokens.json text.font_ladder)"
+            % (size,
+               ("%dpx" % drawn) if drawn else "the LVGL default",
+               ", ".join(str(r) for r in FONT_LADDER)))
 
 
 def check_target_height(h):
