@@ -29,12 +29,16 @@
     // reads as "the swipe is broken" rather than "the swipe is too eager".
     // Same 350 ms cooldown the X viewer landed on in #193. Taps are immediate.
     var NAV_COOLDOWN_MS = 350;
+    // A drag emits gesture events for as long as the finger moves; one swipe is
+    // "over" only once this long passes with no further gesture event.
+    var GESTURE_QUIET_MS = 220;
 
     var event = null;
     var bootUnix = 0;
     var ticks = 0;
     var navSeq = 0;
     var lastNavMs = 0;
+    var lastGestureMs = 0;      // burst latch for swipes (see gestureAllowed)
     var pendingHttp = {};
     var inFlight = false;
     var retryTimerId = null;
@@ -76,8 +80,114 @@
         return result;
     }
 
+/* --- BEGIN toAscii (canonical: uikit/ascii.js -- do not edit in place) --- */
+    // Characters with a real ASCII spelling. Anything not here and not ASCII
+    // is dropped.
+    var ASCII_MAP = {
+        "‘": "'", "’": "'", "‚": "'", "‛": "'", "′": "'",
+        "“": '"', "”": '"', "„": '"', "‟": '"', "″": '"',
+        "–": "-", "—": "-", "―": "-", "‑": "-", "−": "-",
+        "…": "...", "•": "*", "·": "*", "°": " deg",
+        " ": " ", " ": " ", " ": " ", " ": " ", "​": "",
+        "×": "x", "÷": "/", "±": "+/-", "→": "->", "←": "<-",
+        "≤": "<=", "≥": ">=", "≠": "!=", "½": "1/2", "¼": "1/4",
+        "€": "EUR", "£": "GBP", "¥": "JPY", "¢": "c",
+        "™": "(TM)", "®": "(R)", "©": "(C)", "№": "No.",
+        "ß": "ss", "æ": "ae", "Æ": "AE", "œ": "oe", "Œ": "OE",
+        // Stroked/barred letters: the stroke is part of the letter, not a
+        // combining mark, so NFKD does not decompose these and the generated
+        // FOLD table below cannot catch them.
+        "Ł": "L", "ł": "l", "Đ": "D", "đ": "d", "Ø": "O", "ø": "o",
+        "Ħ": "H", "ħ": "h", "Ŧ": "T", "ŧ": "t", "ı": "i", "Ð": "D",
+        "ð": "d", "Þ": "Th", "þ": "th", "Ŋ": "N", "ŋ": "n"
+    };
+    // Accented Latin folded to its base letter, index-for-index.
+    var FOLD_FROM =
+        "ÀÁÂÃÄÅÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛ" +
+        "ÜÝàáâãäåçèéêëìíîïñòóôõöù" +
+        "úûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĒēĔ" +
+        "ĕĖėĘęĚěĜĝĞğĠġĢģĤĥĨĩĪīĬĭĮ" +
+        "įİĴĵĶķĹĺĻļĽľŃńŅņŇňŌōŎŏŐő" +
+        "ŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŨũŪūŬŭ" +
+        "ŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƠơƯưǍǎ" +
+        "ǏǐǑǒǓǔǕǖǗǘǙǚǛǜǞǟǠǡǦǧǨǩǪǫ" +
+        "ǬǭǰǴǵǸǹǺǻȀȁȂȃȄȅȆȇȈȉȊȋȌȍȎ" +
+        "ȏȐȑȒȓȔȕȖȗȘșȚțȞȟȦȧȨȩȪȫȬȭȮ" +
+        "ȯȰȱȲȳḀḁḂḃḄḅḆḇḈḉḊḋḌḍḎḏḐḑḒ" +
+        "ḓḔḕḖḗḘḙḚḛḜḝḞḟḠḡḢḣḤḥḦḧḨḩḪ" +
+        "ḫḬḭḮḯḰḱḲḳḴḵḶḷḸḹḺḻḼḽḾḿṀṁṂ" +
+        "ṃṄṅṆṇṈṉṊṋṌṍṎṏṐṑṒṓṔṕṖṗṘṙṚ" +
+        "ṛṜṝṞṟṠṡṢṣṤṥṦṧṨṩṪṫṬṭṮṯṰṱṲ" +
+        "ṳṴṵṶṷṸṹṺṻṼṽṾṿẀẁẂẃẄẅẆẇẈẉẊ" +
+        "ẋẌẍẎẏẐẑẒẓẔẕẖẗẘẙẛẠạẢảẤấẦầ" +
+        "ẨẩẪẫẬậẮắẰằẲẳẴẵẶặẸẹẺẻẼẽẾế" +
+        "ỀềỂểỄễỆệỈỉỊịỌọỎỏỐốỒồỔổỖỗ" +
+        "ỘộỚớỜờỞởỠỡỢợỤụỦủỨứỪừỬửỮữ" +
+        "ỰựỲỳỴỵỶỷỸỹ";
+    var FOLD_TO =
+        "AAAAAACEEEEIIIINOOOOOUUU" +
+        "UYaaaaaaceeeeiiiinooooou" +
+        "uuuyyAaAaAaCcCcCcCcDdEeE" +
+        "eEeEeEeGgGgGgGgHhIiIiIiI" +
+        "iIJjKkLlLlLlNnNnNnOoOoOo" +
+        "RrRrRrSsSsSsSsTtTtUuUuUu" +
+        "UuUuUuWwYyYZzZzZzsOoUuAa" +
+        "IiOoUuUuUuUuUuAaAaGgKkOo" +
+        "OojGgNnAaAaAaEeEeIiIiOoO" +
+        "oRrRrUuUuSsTtHhAaEeOoOoO" +
+        "oOoYyAaBbBbBbCcDdDdDdDdD" +
+        "dEeEeEeEeEeFfGgHhHhHhHhH" +
+        "hIiIiKkKkKkLlLlLlLlMmMmM" +
+        "mNnNnNnNnOoOoOoOoPpPpRrR" +
+        "rRrRrSsSsSsSsSsTtTtTtTtU" +
+        "uUuUuUuUuVvVvWwWwWwWwWwX" +
+        "xXxYyZzZzZzhtwysAaAaAaAa" +
+        "AaAaAaAaAaAaAaAaEeEeEeEe" +
+        "EeEeEeEeIiIiOoOoOoOoOoOo" +
+        "OoOoOoOoOoOoUuUuUuUuUuUu" +
+        "UuYyYyYyYy";
+
+    /**
+     * Fold `value` to something an ASCII-only font can actually draw.
+     * Returns a plain ASCII string; never null or undefined.
+     */
+    function toAscii(value) {
+        var s = (value === null || value === undefined) ? "" : String(value);
+        var i, code;
+        // Fast path: almost every string is already clean, so scan first and
+        // return the original rather than rebuilding it character by character.
+        var dirty = false;
+        for (i = 0; i < s.length; i++) {
+            code = s.charCodeAt(i);
+            if (code > 126 || (code < 32 && code !== 10)) { dirty = true; break; }
+        }
+        if (!dirty) { return s; }
+
+        var out = "";
+        for (i = 0; i < s.length; i++) {
+            var ch = s.charAt(i);
+            code = s.charCodeAt(i);
+            if (code === 10 || (code >= 32 && code <= 126)) { out += ch; continue; }
+            // An astral codepoint (most emoji) is a surrogate PAIR in UTF-16;
+            // consume both units so the trailing half is never left behind as
+            // a lone surrogate.
+            if (code >= 0xD800 && code <= 0xDBFF && i + 1 < s.length) {
+                var lo = s.charCodeAt(i + 1);
+                if (lo >= 0xDC00 && lo <= 0xDFFF) { i++; continue; }
+            }
+            var mapped = ASCII_MAP[ch];
+            if (mapped !== undefined) { out += mapped; continue; }
+            var f = FOLD_FROM.indexOf(ch);
+            if (f >= 0) { out += FOLD_TO.charAt(f); continue; }
+            // Everything else -- BMP emoji, CJK, variation selectors, symbols
+            // -- is dropped. A gap reads as a gap; a box reads as a bug.
+        }
+        return out;
+    }
+/* --- END toAscii --- */
+
     function setText(path, text) {
-        guiCall("SetText", { Path: SCREEN + path, Text: String(text) });
+        guiCall("SetText", { Path: SCREEN + path, Text: toAscii(text) });
     }
 
     function setBinding(path, key, value) {
@@ -103,6 +213,28 @@
             return true;
         }
         return false;
+    }
+
+    /**
+     * True at most once per continuous drag -- the swipe half of the guard.
+     *
+     * navAllowed() is a LEADING-EDGE cooldown: it stamps the clock only when it
+     * lets something through. That is right for taps (two events, ~0 ms apart)
+     * and wrong for swipes. The touch layer emits gesture events for the whole
+     * time a finger is moving, so a slow drag lasting a second clears a 350 ms
+     * window two or three times over and steps two or three cards -- "swipe
+     * left or right seems to swipe too much".
+     *
+     * This one stamps the clock on EVERY gesture event, accepted or rejected,
+     * so each event pushes the quiet window further out. One drag therefore
+     * steps exactly once no matter how long or slow it is, and the next swipe
+     * is live GESTURE_QUIET_MS after the finger stops -- not after it started.
+     */
+    function gestureAllowed() {
+        var t = Date.now();
+        var gap = t - lastGestureMs;
+        lastGestureMs = t;              // extend the burst even when rejecting
+        return gap < 0 || gap >= GESTURE_QUIET_MS;
     }
 
     function pad2(n) {
@@ -392,7 +524,7 @@
                     // the system swipe-up home gesture is never interfered
                     // with.
                     if (payload.direction === "left" || payload.direction === "right") {
-                        if (navAllowed()) {
+                        if (gestureAllowed()) {
                             step(payload.direction === "left" ? 1 : -1);
                         }
                     }

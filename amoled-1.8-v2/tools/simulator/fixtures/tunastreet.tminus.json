@@ -1,0 +1,31 @@
+{
+    "_comment": "Canned responses for tunastreet.tminus under --fixture. Shape captured from the live backend (~/amoled-tminus/backend/server.py, Launch Library 2 upcoming window) and frozen so a check run is reproducible: a Falcon 9 Starlink launch, card 1 of 8, t0 fixed relative to server_unix so the countdown is always the same T-. tminus steps SERVER-side (POST /tminus/step returns the new card), so a static fixture cannot change idx -- selftest.js asserts on how many step requests a drag issues, not on the rendered index.",
+    "GET /tminus/now": {
+        "status_code": 200,
+        "body": {
+            "id": "6208f972-18ec-490f-bbe5-6f5c6cfcd48c",
+            "vehicle": "Falcon 9",
+            "mission": "Starlink Group 15-20",
+            "pad": "SLC-4E - Vandenberg",
+            "t0_unix": 1755803600,
+            "server_unix": 1755800000,
+            "status": "Go",
+            "idx": 0,
+            "count": 8
+        }
+    },
+    "POST /tminus/step": {
+        "status_code": 200,
+        "body": {
+            "id": "b1f0c2d4-4a77-4a1e-9f3a-2c8de1a90b55",
+            "vehicle": "Electron",
+            "mission": "There And Back Again",
+            "pad": "LC-1A - Mahia",
+            "t0_unix": 1755809000,
+            "server_unix": 1755800000,
+            "status": "Go",
+            "idx": 1,
+            "count": 8
+        }
+    }
+}

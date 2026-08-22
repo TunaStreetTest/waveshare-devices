@@ -98,7 +98,7 @@
                     },
                     "style": {
                         "textColor": "#F96702",
-                        "fontSize": 22,
+                        "fontSize": 20,
                         "textAlign": "left"
                     },
                     "labelProps": {
@@ -120,7 +120,7 @@
                     },
                     "style": {
                         "textColor": "#888888",
-                        "fontSize": 18,
+                        "fontSize": 16,
                         "textAlign": "right"
                     },
                     "labelProps": {
@@ -533,7 +533,7 @@
                     },
                     "style": {
                         "textColor": "#888888",
-                        "fontSize": 56,
+                        "fontSize": 48,
                         "textAlign": "center"
                     },
                     "labelProps": {
@@ -558,7 +558,7 @@
                     },
                     "style": {
                         "textColor": "#888888",
-                        "fontSize": 15,
+                        "fontSize": 16,
                         "textAlign": "center"
                     },
                     "labelProps": {
@@ -631,7 +631,7 @@
                     },
                     "style": {
                         "textColor": "#888888",
-                        "fontSize": 15,
+                        "fontSize": 16,
                         "textAlign": "center"
                     },
                     "labelProps": {
@@ -653,7 +653,7 @@
                     },
                     "style": {
                         "textColor": "#f0f0f0",
-                        "fontSize": 18,
+                        "fontSize": 16,
                         "textAlign": "center"
                     },
                     "labelProps": {
@@ -675,7 +675,7 @@
                     },
                     "style": {
                         "textColor": "#888888",
-                        "fontSize": 15,
+                        "fontSize": 16,
                         "textAlign": "center"
                     },
                     "labelProps": {
@@ -745,7 +745,7 @@
                     },
                     "style": {
                         "textColor": "#888888",
-                        "fontSize": 15,
+                        "fontSize": 16,
                         "textAlign": "center"
                     },
                     "labelProps": {
@@ -789,7 +789,7 @@
                     },
                     "style": {
                         "textColor": "#888888",
-                        "fontSize": 15,
+                        "fontSize": 16,
                         "textAlign": "center"
                     },
                     "labelProps": {
@@ -833,7 +833,7 @@
                     },
                     "style": {
                         "textColor": "#888888",
-                        "fontSize": 15,
+                        "fontSize": 16,
                         "textAlign": "center"
                     },
                     "labelProps": {
@@ -877,7 +877,7 @@
                     },
                     "style": {
                         "textColor": "#888888",
-                        "fontSize": 15,
+                        "fontSize": 16,
                         "textAlign": "center"
                     },
                     "labelProps": {
@@ -925,7 +925,7 @@
                     },
                     "style": {
                         "textColor": "#888888",
-                        "fontSize": 15,
+                        "fontSize": 16,
                         "textAlign": "center"
                     },
                     "labelProps": {
@@ -947,7 +947,7 @@
                     },
                     "style": {
                         "textColor": "#888888",
-                        "fontSize": 15,
+                        "fontSize": 16,
                         "textAlign": "center"
                     },
                     "labelProps": {

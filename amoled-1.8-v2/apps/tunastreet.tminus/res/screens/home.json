@@ -189,7 +189,7 @@
             },
             "style": {
                 "textColor": "#ffb000",
-                "fontSize": 56,
+                "fontSize": 48,
                 "textAlign": "center"
             },
             "labelProps": {
@@ -215,7 +215,7 @@
             },
             "style": {
                 "textColor": "#f0f0f0",
-                "fontSize": 22,
+                "fontSize": 20,
                 "textAlign": "center"
             },
             "labelProps": {
@@ -237,7 +237,7 @@
             },
             "style": {
                 "textColor": "#888888",
-                "fontSize": 18,
+                "fontSize": 16,
                 "textAlign": "center"
             },
             "labelProps": {
@@ -368,7 +368,7 @@
             },
             "style": {
                 "textColor": "#1a1a1a",
-                "fontSize": 15,
+                "fontSize": 16,
                 "textAlign": "center"
             },
             "labelProps": {
