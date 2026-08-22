@@ -139,6 +139,34 @@ def lint_tree(root, file_label="screen"):
                    "box (%d,%d,%d,%d) escapes the %dx%d panel"
                    % (x, y, w, h, tk.W, tk.H))
 
+    # R6 -- trap 3: an image with no explicit `clickable`. The runtime
+    # defaults an image node to clickable:true, so a decorative picture drawn
+    # over a tap zone eats every tap that lands on it and the zone below never
+    # sees one (T-MINUS's launch art, found on the glass 2026-08-21).
+    for node, path in nodes:
+        if node.get("type") != "image":
+            continue
+        if "clickable" not in (node.get("commonProps") or {}):
+            report(node, path, "R6",
+                   "image does not declare commonProps.clickable -- the "
+                   "runtime defaults it to true and it will swallow taps "
+                   "meant for whatever is underneath")
+
+    # R7 -- trap 4: text the panel font cannot draw. No FreeType on this
+    # board means built-in Montserrat, which is ASCII only; anything else is
+    # a white box on the glass.
+    for node, path in nodes:
+        text = (node.get("labelProps") or {}).get("text")
+        if not isinstance(text, str):
+            continue
+        for ch in text:
+            if ord(ch) > 126 or (ord(ch) < 32 and ch != "\n"):
+                report(node, path, "R7",
+                       "text %r contains U+%04X, outside the built-in "
+                       "Montserrat's ASCII range -- renders as a white box"
+                       % (text, ord(ch)))
+                break
+
     return violations
 
 

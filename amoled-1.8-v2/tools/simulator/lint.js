@@ -9,7 +9,7 @@
  *      action the app subscribed to once, and advance the clock past every
  *      registered timer interval so every on_timer branch runs too.
  *   2. Static token/trap lint over res/screens/*.json, thresholds read from
- *      uikit/tokens.json (never hardcoded here) -- rules R1-R5, kept in this
+ *      uikit/tokens.json (never hardcoded here) -- rules R1-R7, kept in this
  *      order to match the Python twin (uikit/lint.py) a sibling agent is
  *      writing for the same tokens file.
  *
@@ -195,6 +195,34 @@ function checkScreen(file, doc) {
                 const w = node._cw || 0, h = node._ch || 0;
                 if (x < 0 || y < 0 || x + w > T.device.width || y + h > T.device.height) {
                     report(rel, node._path, "R5", "escapes the " + T.device.width + "x" + T.device.height + " panel: box=(" + x + "," + y + "," + w + "," + h + ")");
+                }
+            }
+        }
+
+        // R6: an image that doesn't declare `clickable`. The runtime defaults
+        // an image node to clickable:true (parser_node.cpp
+        // default_clickable_for_node_type), so a decorative picture drawn over
+        // a tap zone eats every tap and the zone under it never fires --
+        // T-MINUS's launch art, found on the glass 2026-08-21 by the backend
+        // never receiving a single /tminus/step.
+        if (node.type === "image") {
+            const cp = node.commonProps || {};
+            if (!Object.prototype.hasOwnProperty.call(cp, "clickable")) {
+                report(rel, node._path, "R6", "image does not declare commonProps.clickable -- it defaults to true and will swallow taps meant for whatever is underneath");
+            }
+        }
+
+        // R7: text outside ASCII. No FreeType on this board, so every label
+        // falls back to LVGL's built-in Montserrat and anything above 0x7E
+        // renders as a white box (the nav chevrons U+2039/203A and the middle
+        // dots in "Go - 4/8" both shipped that way).
+        const txt = node.labelProps && node.labelProps.text;
+        if (typeof txt === "string") {
+            for (const ch of txt) {
+                const cp = ch.codePointAt(0);
+                if (cp > 126 || (cp < 32 && ch !== "\n")) {
+                    report(rel, node._path, "R7", "text " + JSON.stringify(txt) + " contains U+" + cp.toString(16).toUpperCase().padStart(4, "0") + ", outside built-in Montserrat's ASCII range -- renders as a white box");
+                    break;
                 }
             }
         }

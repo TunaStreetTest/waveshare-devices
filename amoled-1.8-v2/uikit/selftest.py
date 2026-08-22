@@ -25,6 +25,7 @@ import tokens as tk
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DIRTY_JSON = os.path.join(HERE, "fixtures", "dirty-screen.json")
+TAP_UNDER_IMAGE_JSON = os.path.join(HERE, "fixtures", "tap-under-image.json")
 RACING_JSON = os.path.join(HERE, "..", "apps", "tunastreet.racing", "res", "screens", "home.json")
 
 _failures = []
@@ -104,6 +105,30 @@ def test_dirty_fixture_flags_known_bad_nodes():
     assert text_floor_sites == {"brand", "status", "reposts", "views", "pos"}, text_floor_sites
 
 
+def test_undeclared_image_over_tap_zone_is_flagged():
+    """R6: the T-MINUS shape that shipped 2026-08-21 -- a tap zone with a
+    decorative image drawn over it. The image defaults to clickable:true in
+    the runtime and ate every tap; the fixture freezes both halves, the
+    undeclared image and a correctly declared one."""
+    violations = lint.lint_file(TAP_UNDER_IMAGE_JSON)
+    r6 = set()
+    for v in violations:
+        if v.split(" ")[1] == "R6":
+            r6.add(v.split(" ", 1)[0].rsplit("/", 1)[-1])
+    assert r6 == {"art_undeclared"}, r6
+
+
+def test_non_ascii_text_is_flagged():
+    """R7: no FreeType on this board, so anything outside ASCII is a white
+    box. The frozen dirty screen still carries the old nav glyphs."""
+    violations = lint.lint_file(DIRTY_JSON)
+    r7 = set()
+    for v in violations:
+        if v.split(" ")[1] == "R7":
+            r7.add(v.split(" ", 1)[0].rsplit("/", 1)[-1])
+    assert r7 == {"nav_prev", "nav_next"}, r7
+
+
 def test_racing_is_clean():
     violations = lint.lint_file(RACING_JSON)
     assert violations == [], violations
@@ -118,6 +143,8 @@ if __name__ == "__main__":
     check("canvas() rejects flow child", test_canvas_rejects_flow_child)
     check("row() clamps gap for tap targets", test_row_clamps_gap_for_tap_targets)
     check("dirty fixture flags exactly the known bad nodes", test_dirty_fixture_flags_known_bad_nodes)
+    check("undeclared image over a tap zone raises R6", test_undeclared_image_over_tap_zone_is_flagged)
+    check("non-ASCII label text raises R7", test_non_ascii_text_is_flagged)
     check("racing.json lints clean", test_racing_is_clean)
 
     if _failures:

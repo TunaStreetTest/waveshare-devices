@@ -23,6 +23,23 @@ comment was not enough to stop a fresh session from doing it again:
   pressed+released. There is no code path in this module that can emit
   requireValidPress or a scrollable container.
 
+  Trap 3 -- an `image` node defaults to **clickable:true** in the runtime
+  (`parser_node.cpp` `default_clickable_for_node_type`: Label is false,
+  Image/Canvas/Container are true), so a decorative picture drawn over a tap
+  zone swallows every tap that lands on it. The zone is there, the hit-test
+  just never reaches it. Found on the glass 2026-08-21: T-MINUS's launch art
+  covered its whole nav band and no tap ever produced a `/tminus/step`.
+  Closed here by `sprite()` emitting `clickable:false` unless a caller asks
+  for a tappable image.
+
+  Trap 4 -- the panel has **no FreeType**, so every text node renders in
+  LVGL's built-in Montserrat, which carries ASCII and nothing else. A
+  non-ASCII character renders as a white tofu box; the boot log's
+  "Font asset 'default' requires FreeType support, fallback to built-in
+  Montserrat" is the warning for it. Shipped twice: the nav chevrons
+  U+2039/U+203A and the middle dots in "Go - 4/8". Closed here by label()
+  and button() refusing non-ASCII text at generation time.
+
 Sizing is enforced against uikit/tokens.json, not re-guessed per screen:
 label() checks its fontSize against the role's band (and the absolute text
 floor); button() checks its height against the tap-target band. An app that
@@ -39,6 +56,24 @@ import tokens as tk
 import lint
 
 NONE_LAYOUT = {"type": "none"}
+
+
+def check_text(id, text):
+    """Refuse text the panel font cannot draw (trap 4).
+
+    The board has no FreeType: every label falls back to LVGL's built-in
+    Montserrat, which is ASCII only. Anything else is a white box on the
+    glass, and it looks like a broken button rather than a missing glyph.
+    """
+    if text is None:
+        return ""
+    for ch in str(text):
+        if ord(ch) > 126 or (ord(ch) < 32 and ch != "\n"):
+            raise ValueError(
+                "%s: text %r contains U+%04X, which the panel's built-in "
+                "Montserrat cannot draw (it renders as a white box). The "
+                "board has no FreeType -- use ASCII." % (id, text, ord(ch)))
+    return text
 
 
 # --------------------------------------------------------------- internals
@@ -196,6 +231,7 @@ def label(id, x, y, w, h, text="", role="body", color=tk.INK, align="center",
     if size is None:
         size = tk.default_size(role)
     tk.check_size(role, size)
+    check_text(id, text)
 
     if x is None and y is None:
         placement = {"mode": "flow", "width": w, "height": h}
@@ -402,20 +438,19 @@ def tile(id, x, y, w, h, image, title, subtitle, action, title_color=tk.INK,
 
 
 # ------------------------------------------------------------- sprite/image
-def sprite(id, x, y, w, h, src, align="contain", clickable=None,
+def sprite(id, x, y, w, h, src, align="contain", clickable=False,
            bindings=None, hidden=None):
     """An image node bound to a runtime src key (e.g. "${image.car_corolla}").
-    `clickable` is left unset (no commonProps at all) by default, matching a
-    purely decorative image inside a tappable parent; pass clickable=False
-    explicitly for a sprite whose hidden/position is runtime-bound (racing's
-    obstacles/car), which is the shape the runtime binder expects even though
-    the node itself never receives a tap.
+
+    `clickable` defaults to **False and is always emitted** -- an image left
+    undeclared is clickable:true in the runtime and swallows taps meant for
+    whatever sits under it (trap 3). Pass clickable=True only for an image
+    that is itself the tap target.
     """
     n = {"type": "image", "id": id,
          "placement": {"mode": "absolute", "x": x, "y": y, "width": w, "height": h},
-         "layout": NONE_LAYOUT}
-    if clickable is not None:
-        n["commonProps"] = {"clickable": clickable}
+         "layout": NONE_LAYOUT,
+         "commonProps": {"clickable": bool(clickable)}}
     n["imageProps"] = {"src": src, "innerAlign": align}
     b = _apply_hidden_binding(bindings, hidden)
     if b:
