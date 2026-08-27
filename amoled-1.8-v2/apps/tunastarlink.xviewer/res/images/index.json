@@ -1,0 +1,23 @@
+{
+    "type": "imageSet",
+    "images": [
+        {
+            "id": "launcher_icon",
+            "src": "launcher_icon.png",
+            "width": 92,
+            "height": 92
+        },
+        {
+            "id": "heart_on",
+            "src": "heart_on.png",
+            "width": 28,
+            "height": 28
+        },
+        {
+            "id": "heart_off",
+            "src": "heart_off.png",
+            "width": 28,
+            "height": 28
+        }
+    ]
+}

@@ -140,6 +140,9 @@ public:
             // agent". The tile keeps working as a debug surface for anything
             // that needs the in-process microfi:: symbols; it just no longer
             // claims a slot on the home screen.
+            // Hidden: the real tunastarlink.agent runtime app is the agent
+            // surface on this board. Keeping the native stub visible too would
+            // put a SECOND "Agent" tile on the launcher (#197's exact problem).
             .visible = false,
             .preload_dom = false,
             // No image icon: with icon_id and icon_path both empty the core

@@ -71,11 +71,14 @@ extern "C" void app_main(void)
             } else if (CONFIG_MICROFI_WIFI_SSID[0] == '\0') {
                 BROOKESIA_LOGW("WiFi pre-provision: no SSID configured, skipping");
             } else {
-                /* A previously saved AP on the wrong subnet wins the boot
-                 * reconnect race — evict it before asserting the LAN AP. */
+                /* A previously saved AP wins the boot reconnect race — evict it
+                 * before asserting the target AP. Tuna Starlink now targets the
+                 * open STARLINK AP, so evict the old ATT AP that this board last
+                 * joined. (SetConnectAp below overwrites any stale STARLINK entry
+                 * with the configured open creds.) */
                 auto rm = WifiHelper::call_function_sync(
-                    WifiHelper::FunctionId::RemoveConnectedAp, "STARLINK");
-                BROOKESIA_LOGI("WiFi pre-provision: remove STARLINK -> %1%",
+                    WifiHelper::FunctionId::RemoveConnectedAp, "ATTyjuHfEi");
+                BROOKESIA_LOGI("WiFi pre-provision: remove ATTyjuHfEi -> %1%",
                                rm ? "removed" : rm.error());
                 auto set_ap = WifiHelper::call_function_sync(
                     WifiHelper::FunctionId::SetConnectAp,

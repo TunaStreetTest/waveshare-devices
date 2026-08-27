@@ -34,10 +34,9 @@ endif()
 get_filename_component(TUNASTREET_APPS_DIR "${TUNASTREET_APPS_DIR}" ABSOLUTE)
 
 set(TUNASTREET_APP_PACKAGES
-    tunastreet.agent
-    tunastreet.racing
-    tunastreet.tminus
-    tunastreet.xviewer
+    # Tuna Starlink board: the real agent monitor + X viewer (rebranded).
+    tunastarlink.agent
+    tunastarlink.xviewer
 )
 
 idf_build_get_property(build_components BUILD_COMPONENTS)

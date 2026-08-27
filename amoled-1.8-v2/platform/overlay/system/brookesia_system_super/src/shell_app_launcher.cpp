@@ -254,6 +254,12 @@ std::expected<void, std::string> ShellApp::populate_launcher(core::AppContext &c
         if (!app.manifest.visible) {
             continue;
         }
+        // Tuna Starlink: keep the launcher a clean 2x2 (4 tiles). Hide the
+        // stock Files tile so App Store + Settings + Agent + X-Viewer fill one
+        // 2x2 page. (Files stays installed; it just claims no home slot.)
+        if (app.manifest.id == "brookesia.general.files") {
+            continue;
+        }
         visible_apps.push_back(app);
         launcher_order_.push_back(app.app_id);
     }
@@ -427,6 +433,12 @@ std::expected<void, std::string> ShellApp::refresh_environment()
     std::vector<gui::BindingValueUpdate> updates;
     for (const auto &app : owner_.list_apps()) {
         if (!app.manifest.visible) {
+            continue;
+        }
+        // Tuna Starlink: keep the launcher a clean 2x2 (4 tiles). Hide the
+        // stock Files tile so App Store + Settings + Agent + X-Viewer fill one
+        // 2x2 page. (Files stays installed; it just claims no home slot.)
+        if (app.manifest.id == "brookesia.general.files") {
             continue;
         }
 

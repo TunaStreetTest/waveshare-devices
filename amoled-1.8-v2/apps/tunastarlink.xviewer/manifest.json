@@ -1,0 +1,19 @@
+{
+    "package": {
+        "id": "tunastarlink.xviewer",
+        "name": {
+            "en": "X Viewer"
+        },
+        "version": "0.1.0",
+        "visible": true,
+        "systems": [
+            "super"
+        ]
+    },
+    "runtime": {
+        "type": "JavaScript",
+        "entry": "app/app.js",
+        "resource_dir": "res",
+        "arguments": []
+    }
+}
