@@ -20,7 +20,7 @@ BOARD_PROFILE=cloudera ./setup.sh      # (default: tuna-street)
 | `splash` | `resource/startup/images/background.png` (the file named here, from this profile dir; absent → the overlay's generic tuna splash is kept) |
 | `launcher.*` | `resource/shell/constants/portrait.json` → the `launcher*` grid constants |
 | `launcher.hideFiles` | generated `main/board_profile.cmake` → `BOARD_HIDE_FILES` **compile definition** (read by `shell_app_launcher.cpp`, which lives in another component and can't include `main/` — so it rides as a build-wide define, not a header macro) |
-| `hasBattery` | generated `main/board_profile.cmake` → `BOARD_HAS_BATTERY` **compile definition** (#261): boards with a LiPo fitted read the AXP2101 and show the status-bar charge gauge (a pill at the **left** edge of the bar, opposite WiFi + clock); a USB-only board compiles it out |
+| `hasBattery` | generated `main/board_profile.cmake` → `BOARD_HAS_BATTERY` **compile definition** (#261): boards with a LiPo fitted read the AXP2101 and show the status-bar charge gauge (a pill at the **right** edge of the bar — the bar is WiFi · clock · battery, three spaceBetween groups); a USB-only board compiles it out and the clock stays centred |
 | `hasAgent` | generated `main/board_profile.cmake` → `BOARD_HAS_AGENT` (#263). Default **true**. `false` = **no EFM agent on this board**: `components/microfi_agent` and `components/agent_status_tile` build as one-file stubs (no MicroFi sources, no flow engine / C2 client / processors, no PSRAM BSS, no native status tile) and `main.cpp` never starts the agent task — the board is a plain Brookesia panel. Meant for the battery boards that leave the LAN. Drop the `tunastreet.agent` tile from `apps` too, or it just shows SILENT. The C2 fields become don't-cares but are harmless |
 | `apps` | `main/CMakeLists.txt` → `TUNASTREET_APP_PACKAGES` (which runtime tiles get staged) |
 | `wifi.evictAp` | generated `main/board_profile.h` → `BOARD_WIFI_EVICT_AP` (read by `main.cpp`, same dir); the SSID to join stays in gitignored `sdkconfig.local` |
@@ -38,8 +38,9 @@ a shared file (that is exactly the divergence #260 exists to end).
 
 ## Profiles
 
-- **tuna-street** — the original board (WindowsDesktop / COM8). 3-col launcher, all
-  four `tunastreet.*` apps, ATT LAN, direct EFM C2, tuna splash.
+- **tuna-street** — the original board (WindowsDesktop / COM8). 2×2 launcher paged
+  sideways (two pages — swipe over, swipe back; `shell_app_launcher.cpp` delta 4), all
+  four `tunastreet.*` apps, Files hidden, ATT LAN, direct EFM C2, tuna splash.
 - **tuna-starlink** — StarlinkAI board (#252 / PR #1). 2×2, `tunastarlink.*` apps,
   open STARLINK WiFi, StarlinkAI C2 relay, amber-on-black splash.
 - **cloudera** — Cloudera-branded board (#258, COM10). 2×2, RACING, orange
