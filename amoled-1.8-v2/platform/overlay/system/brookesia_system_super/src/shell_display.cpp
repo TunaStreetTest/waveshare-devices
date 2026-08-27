@@ -212,7 +212,14 @@ void ShellApp::disconnect_display_gesture()
 
 void ShellApp::handle_display_touch_gesture(const DisplayService::TouchGestureInfo &info)
 {
-    if (context_ == nullptr || foreground_is_shell_) {
+    if (context_ == nullptr) {
+        return;
+    }
+    if (foreground_is_shell_) {
+        // Home screen: the one gesture the shell owns here is the launcher's
+        // sideways page flip (#262/#263). Everything below is the
+        // app-foreground bottom-edge exit + top-edge status peek, unchanged.
+        handle_launcher_page_gesture(info);
         return;
     }
     if (message_dialog_mounted_ || message_dialog_closing_) {

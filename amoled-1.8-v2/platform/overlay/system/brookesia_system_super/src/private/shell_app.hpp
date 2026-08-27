@@ -14,6 +14,7 @@
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <atomic>
 #include <vector>
 
 #include "brookesia/system_super/macro_configs.h"
@@ -134,6 +135,11 @@ private:
     void disconnect_launcher_actions();
     void disconnect_overlay_actions();
     void handle_launcher_event(const gui::Event &event);
+    // Horizontal launcher paging (#262/#263): flip the 2x2 page on a sideways
+    // swipe over the home screen, and drop the tile click a swipe would otherwise
+    // land as. Called from the Display gesture callback while the shell is foreground.
+    void handle_launcher_page_gesture(const service::Display::TouchGestureInfo &info);
+    std::expected<void, std::string> set_launcher_page(int32_t page);
     bool ensure_display_operation();
     void release_display_operation();
     bool ensure_display_service_binding();
@@ -247,6 +253,21 @@ private:
     size_t launcher_slot_count_ = 0;
     std::vector<DisplaySourceRestoreRecord> display_source_restore_records_;
     bool launcher_populated_ = false;
+    // Launcher paging state (#262/#263). Tiles keep their page + in-page
+    // position so a page flip is a rebind of every tile's x, not a re-layout.
+    struct LauncherTile {
+        std::string path;
+        int32_t page = 0;
+        int32_t x = 0;
+        int32_t y = 0;
+    };
+    std::vector<LauncherTile> launcher_tiles_;
+    int32_t launcher_page_ = 0;
+    int32_t launcher_page_count_ = 1;
+    int32_t launcher_page_stride_ = 0;
+    // Set from the Display touch task once a press drifts sideways; read on the
+    // GUI task by handle_launcher_event to swallow the click LVGL still emits.
+    std::atomic<bool> launcher_swipe_active_{false};
     std::string applied_i18n_locale_;
     mutable std::mutex debug_mutex_;
     DebugConfig debug_config_;

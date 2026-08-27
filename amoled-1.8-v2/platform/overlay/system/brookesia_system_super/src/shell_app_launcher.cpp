@@ -38,6 +38,9 @@
  * order. It is deterministic, it is not alphabetical, and no manifest field
  * influences it.
  */
+#include <algorithm>
+#include <cstdlib>
+
 #include "brookesia/system_super/macro_configs.h"
 #if !BROOKESIA_SYSTEM_SUPER_ENABLE_DEBUG_LOG
 #   define BROOKESIA_LOG_DISABLE_DEBUG_TRACE 1
@@ -77,6 +80,16 @@ inline constexpr int32_t LAUNCHER_ITEM_GAP_DEFAULT = 18;
 inline constexpr const char *LAUNCHER_ITEM_WIDTH_CONSTANT = "ui.content.metric.launcherItemWidth";
 inline constexpr const char *LAUNCHER_ITEM_HEIGHT_CONSTANT = "ui.content.metric.launcherItemHeight";
 inline constexpr const char *LAUNCHER_ITEM_GAP_CONSTANT = "ui.content.metric.launcherItemGap";
+inline constexpr const char *LAUNCHER_CONTENT_Y_CONSTANT = "ui.content.metric.y";
+inline constexpr const char *LAUNCHER_GRID_TOP_CONSTANT = "ui.content.metric.launcherGridTop";
+inline constexpr int32_t LAUNCHER_CONTENT_Y_DEFAULT = 42;
+inline constexpr int32_t LAUNCHER_GRID_TOP_DEFAULT = 18;
+
+// Paging gesture thresholds (px, delta 4). A press that drifts DRIFT px
+// sideways is a swipe, not a tap -- its tile click is dropped. A release at
+// least FLIP px from its press point flips the page.
+inline constexpr int32_t LAUNCHER_SWIPE_DRIFT_PX = 18;
+inline constexpr int32_t LAUNCHER_SWIPE_FLIP_PX = 60;
 
 /* Read a length constant out of the shell resource.
  *
@@ -247,6 +260,11 @@ std::expected<void, std::string> ShellApp::populate_launcher(core::AppContext &c
     launcher_slot_count_ = 0;
     launcher_order_.clear();
     launcher_instance_to_app_.clear();
+    launcher_tiles_.clear();
+    launcher_page_ = 0;
+    launcher_page_count_ = 1;
+    launcher_page_stride_ = 0;
+    launcher_swipe_active_ = false;
     launcher_populated_ = false;
 
     std::vector<core::AppInfo> visible_apps;
@@ -302,17 +320,48 @@ std::expected<void, std::string> ShellApp::populate_launcher(core::AppContext &c
     launcher_slot_count_ = 0;
 
     // Delta 2: the scroll viewport is grid_stage, NOT the content container.
-    // Seeding from `content` (406px) inside a 388px viewport made the grid
-    // scrollable by 18px with every tile already on screen.
+    // Its runtime frame is not laid out yet when populate runs (it read back
+    // as 1px and produced 1-row pages -- X-Viewer landed on a third page), so
+    // the height is derived from the same constants app_launcher.json sizes
+    // it with: heightDp - content.y - launcherGridTop. A sane frame wins.
+    const auto fallback_height = static_cast<int32_t>(
+                                     std::max(1.0F, static_cast<float>(environment.height_px) / density)
+                                 );
+    const auto content_y = launcher_metric(context, LAUNCHER_CONTENT_Y_CONSTANT, LAUNCHER_CONTENT_Y_DEFAULT);
+    const auto grid_top = launcher_metric(context, LAUNCHER_GRID_TOP_CONSTANT, LAUNCHER_GRID_TOP_DEFAULT);
+    const int32_t computed_viewport_height =
+        std::max<int32_t>(fallback_height - content_y - grid_top, item_height);
     const auto grid_stage_frame = context.gui().get_view_frame(SUPER_LAUNCHER_GRID_STAGE_PATH);
-    const int32_t viewport_height = grid_stage_frame.has_value() ?
-                                    std::max<int32_t>(grid_stage_frame->height, 1) : 1;
+    const int32_t viewport_height =
+        (grid_stage_frame.has_value() && grid_stage_frame->height >= item_height) ?
+        grid_stage_frame->height : computed_viewport_height;
+
+    // Delta 4 (#262/#263): HORIZONTAL paging. rows_per_page whole rows fit the
+    // viewport; columns x rows tiles fill a page; every further page sits one
+    // stride to the right of the grid stage, outside its bounds, where LVGL
+    // neither draws nor hit-tests it. set_launcher_page() slides the set by
+    // rebinding each tile's x. The grid never scrolls, and a sideways swipe is
+    // a gesture -- not a scroll -- so a drift can no longer land as a click.
+    const int32_t rows_per_page = std::max<int32_t>(1, (viewport_height + item_gap) / (item_height + item_gap));
+    const int32_t tiles_per_page = std::max<int32_t>(1, launcher_columns * rows_per_page);
+    launcher_page_stride_ = launcher_grid_width + item_gap;
+    launcher_page_count_ = std::max<int32_t>(
+                               1,
+                               static_cast<int32_t>(
+                                   (visible_apps.size() + static_cast<size_t>(tiles_per_page) - 1) /
+                                   static_cast<size_t>(tiles_per_page)
+                               )
+                           );
+    launcher_page_ = 0;
     int32_t grid_extent = 0;
     for (size_t i = 0; i < visible_apps.size(); ++i) {
         const auto &app = visible_apps[i];
-        const auto column = static_cast<int32_t>(i % static_cast<size_t>(launcher_columns));
-        const auto row = static_cast<int32_t>(i / static_cast<size_t>(launcher_columns));
-        const auto item_x = column * (item_width + item_gap);
+        const auto page = static_cast<int32_t>(i / static_cast<size_t>(tiles_per_page));
+        const auto local = static_cast<int32_t>(i % static_cast<size_t>(tiles_per_page));
+        const auto column = local % launcher_columns;
+        const auto row = local / launcher_columns;
+        const auto local_x = column * (item_width + item_gap);
+        const auto item_x = page * launcher_page_stride_ + local_x;
         const auto item_y = row * (item_height + item_gap);
         grid_extent = std::max(grid_extent, item_y + item_height);
 
@@ -353,6 +402,12 @@ std::expected<void, std::string> ShellApp::populate_launcher(core::AppContext &c
         }
 
         launcher_instance_to_app_.emplace(instance_id, app.app_id);
+        launcher_tiles_.push_back(LauncherTile{
+            .path = instance_path,
+            .page = page,
+            .x = local_x,
+            .y = item_y,
+        });
     }
 
     static constexpr std::array launcher_actions = {
@@ -370,19 +425,15 @@ std::expected<void, std::string> ShellApp::populate_launcher(core::AppContext &c
         launcher_action_connections_.push_back(std::move(connection));
     }
 
-    // The layers still have to cover the viewport, so they are the taller of
-    // the two; the SCROLL decision is the tile extent alone (delta 3).
+    // The layers cover the viewport. Each page's rows fit it by construction
+    // (delta 4), so the grid is NEVER scrollable -- delta 3's answer to the
+    // #220 scramble stays in force, and no sideways drift can become a scroll.
     const int32_t content_height = std::max(viewport_height, grid_extent);
-    const bool grid_scrollable = grid_extent > viewport_height;
-    add_binding_update(
-        binding_updates,
-        SUPER_LAUNCHER_GRID_STAGE_PATH,
-        "grid_scrollable",
-        grid_scrollable ? "true" : "false"
-    );
-    BROOKESIA_LOGD(
-        "Launcher grid: columns(%1%), item(%2%x%3% gap %4%), extent(%5%), viewport(%6%), scrollable(%7%)",
-        launcher_columns, item_width, item_height, item_gap, grid_extent, viewport_height, grid_scrollable
+    add_binding_update(binding_updates, SUPER_LAUNCHER_GRID_STAGE_PATH, "grid_scrollable", "false");
+    BROOKESIA_LOGI(
+        "Launcher grid: columns(%1%), rows/page(%2%), pages(%3%), item(%4%x%5% gap %6%), extent(%7%), viewport(%8%)",
+        launcher_columns, rows_per_page, launcher_page_count_, item_width, item_height, item_gap,
+        grid_extent, viewport_height
     );
     add_binding_update(
         binding_updates,
@@ -410,6 +461,70 @@ std::expected<void, std::string> ShellApp::populate_launcher(core::AppContext &c
 
     launcher_populated_ = true;
     return {};
+}
+
+std::expected<void, std::string> ShellApp::set_launcher_page(int32_t page)
+{
+    if (context_ == nullptr || !launcher_populated_) {
+        return {};
+    }
+    page = std::clamp<int32_t>(page, 0, launcher_page_count_ - 1);
+    if (page == launcher_page_) {
+        return {};
+    }
+    launcher_page_ = page;
+    // Slide the whole tile set: a tile on page p sits (p - current) strides to
+    // the right of the grid stage. Off-stage tiles are outside their parent's
+    // bounds, so LVGL neither draws nor hit-tests them.
+    std::vector<gui::BindingValueUpdate> updates;
+    updates.reserve(launcher_tiles_.size());
+    for (const auto &tile : launcher_tiles_) {
+        const auto x = tile.x + (tile.page - launcher_page_) * launcher_page_stride_;
+        add_binding_update(updates, tile.path, "x", std::to_string(x));
+    }
+    auto result = context_->gui().set_binding_values(updates);
+    if (!result) {
+        BROOKESIA_LOGW("Failed to flip launcher page to %1%: %2%", launcher_page_, result.error());
+        return result;
+    }
+    BROOKESIA_LOGI("Launcher page %1%/%2%", launcher_page_ + 1, launcher_page_count_);
+    return {};
+}
+
+void ShellApp::handle_launcher_page_gesture(const service::Display::TouchGestureInfo &info)
+{
+    using EventType = service::Display::TouchGestureEventType;
+    using Direction = service::Display::TouchGestureDirection;
+
+    if (!launcher_populated_ || launch_overlay_active_ || message_dialog_mounted_ || message_dialog_closing_) {
+        launcher_swipe_active_ = false;
+        return;
+    }
+    const int32_t dx = info.stop_x - info.start_x;
+    switch (info.event_type) {
+    case EventType::Press:
+        launcher_swipe_active_ = false;
+        return;
+    case EventType::Pressing:
+        // Direction lock is on for this output: a locked Left/Right, or a raw
+        // sideways drift before the lock lands, marks this press as a swipe.
+        if (std::abs(dx) >= LAUNCHER_SWIPE_DRIFT_PX &&
+                (info.direction == Direction::Left || info.direction == Direction::Right ||
+                 info.direction == Direction::None)) {
+            launcher_swipe_active_ = true;
+        }
+        return;
+    case EventType::Release:
+        if (launcher_page_count_ > 1 && std::abs(dx) >= LAUNCHER_SWIPE_FLIP_PX &&
+                (info.direction == Direction::Left || info.direction == Direction::Right)) {
+            // Finger moves left -> content follows -> next page; right -> back.
+            (void)set_launcher_page(launcher_page_ + (dx < 0 ? 1 : -1));
+        }
+        // Keep the flag up through the release so the tile click that reaches
+        // the GUI task after this callback is still swallowed; the next Press
+        // clears it.
+        return;
+    }
 }
 
 std::expected<void, std::string> ShellApp::refresh_launcher()
@@ -498,6 +613,14 @@ void ShellApp::handle_launcher_event(const gui::Event &event)
 {
     if (launch_overlay_active_) {
         BROOKESIA_LOGW("Ignore launcher action while app launch overlay is active");
+        return;
+    }
+    // A sideways swipe over a tile still ends in an LVGL `clicked`: the tile
+    // template dropped requireValidPress (#205) and the grid does not scroll,
+    // so nothing steals the press. The gesture path flagged the drift -- that
+    // click is the page flip's side effect, not a launch (delta 4).
+    if (launcher_swipe_active_.load()) {
+        BROOKESIA_LOGD("Ignore launcher click: press drifted into a page swipe");
         return;
     }
 
