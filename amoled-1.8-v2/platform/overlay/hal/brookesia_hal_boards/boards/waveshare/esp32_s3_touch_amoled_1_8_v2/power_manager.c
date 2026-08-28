@@ -18,7 +18,9 @@ static const char *TAG = "CUSTOM_POWER_MANAGER";
 enum {
     AXP2101_REG_STATUS1 = 0x00,
     AXP2101_REG_STATUS2 = 0x01,
+    AXP2101_REG_COMMON_CONFIG = 0x10,        // bit0 = SOFT_PWROFF (soft power-off command)
     AXP2101_REG_CHARGER_FUEL_GAUGE_CONTROL = 0x18,
+    AXP2101_REG_PWRON_IRQ_STATUS = 0x49,     // INTSTS2 -- PWRON key events, write-1-to-clear
     AXP2101_REG_ADC_CHANNEL_ENABLE = 0x30,
     AXP2101_REG_VBAT_H = 0x34,
     AXP2101_REG_VBUS_H = 0x38,
@@ -29,6 +31,16 @@ enum {
     AXP2101_REG_CV_CHG_SET = 0x64,
     AXP2101_REG_BATTERY_PERCENTAGE = 0xA4,
 };
+
+// PWRON key IRQ-status bits (AXP2101 INTSTS2 / REG 0x49): the PMIC latches these
+// on a power-button event regardless of the IRQ-enable mask, so they can be
+// polled and write-1-cleared without wiring the PMIC IRQ line.
+#define AXP2101_PKEY_POSITIVE_IRQ  BIT(0)
+#define AXP2101_PKEY_NEGATIVE_IRQ  BIT(1)
+#define AXP2101_PKEY_LONG_IRQ      BIT(2)   // held past REG 0x27 long-press time
+#define AXP2101_PKEY_SHORT_IRQ     BIT(3)
+#define AXP2101_PKEY_IRQ_MASK \
+    (AXP2101_PKEY_POSITIVE_IRQ | AXP2101_PKEY_NEGATIVE_IRQ | AXP2101_PKEY_LONG_IRQ | AXP2101_PKEY_SHORT_IRQ)
 
 static esp_err_t axp2101_read_reg(i2c_master_dev_handle_t handle, uint8_t reg, uint8_t *value)
 {
@@ -294,6 +306,50 @@ esp_err_t power_manager_set_charging_enabled(void *device_handle, bool enabled)
     return axp2101_update_reg_bits(
                axp2101_h, AXP2101_REG_CHARGER_FUEL_GAUGE_CONTROL, BIT(1), enabled ? BIT(1) : 0
            );
+}
+
+esp_err_t power_manager_power_off(void *device_handle)
+{
+    ESP_RETURN_ON_FALSE(device_handle != NULL, ESP_ERR_INVALID_ARG, TAG, "Invalid arguments");
+    i2c_master_dev_handle_t axp2101_h = ((power_manager_handle_t *)device_handle)->pm_handle;
+    // Soft power-off: REG 0x10 bit0. The PMU enters its OFF state and drops DC1
+    // (the ESP32 3.3V rail), so on battery the board powers down. With VBUS
+    // present the PMU re-powers instead -- there the same command reads as a reboot.
+    return axp2101_update_reg_bits(axp2101_h, AXP2101_REG_COMMON_CONFIG, BIT(0), BIT(0));
+}
+
+esp_err_t power_manager_clear_power_key(void *device_handle)
+{
+    ESP_RETURN_ON_FALSE(device_handle != NULL, ESP_ERR_INVALID_ARG, TAG, "Invalid arguments");
+    i2c_master_dev_handle_t axp2101_h = ((power_manager_handle_t *)device_handle)->pm_handle;
+    // Write-1-to-clear all latched PWRON key events (drops a press latched at boot).
+    return axp2101_write_reg(axp2101_h, AXP2101_REG_PWRON_IRQ_STATUS, AXP2101_PKEY_IRQ_MASK);
+}
+
+esp_err_t power_manager_poll_power_key(void *device_handle, bool *long_pressed)
+{
+    ESP_RETURN_ON_FALSE(device_handle != NULL && long_pressed != NULL, ESP_ERR_INVALID_ARG, TAG,
+                        "Invalid arguments");
+    *long_pressed = false;
+
+    i2c_master_dev_handle_t axp2101_h = ((power_manager_handle_t *)device_handle)->pm_handle;
+    uint8_t status = 0;
+    ESP_RETURN_ON_ERROR(axp2101_read_reg(axp2101_h, AXP2101_REG_PWRON_IRQ_STATUS, &status), TAG,
+                        "Failed to read PWRON IRQ status");
+
+    const uint8_t pkey = status & AXP2101_PKEY_IRQ_MASK;
+    if (pkey == 0) {
+        return ESP_OK;  // nothing latched -- skip the clearing write
+    }
+
+    // Log the raw bits so the exact long-press bit is verifiable on the glass.
+    ESP_LOGI(TAG, "PWRON key event status=0x%02x (long=%d short=%d)", status,
+             (pkey & AXP2101_PKEY_LONG_IRQ) ? 1 : 0, (pkey & AXP2101_PKEY_SHORT_IRQ) ? 1 : 0);
+    if (pkey & AXP2101_PKEY_LONG_IRQ) {
+        *long_pressed = true;
+    }
+    // Clear only the key-event bits we handled (write-1-to-clear).
+    return axp2101_write_reg(axp2101_h, AXP2101_REG_PWRON_IRQ_STATUS, pkey);
 }
 
 int power_manager_init(void *config, int cfg_size, void **device_handle)
