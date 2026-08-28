@@ -27,6 +27,11 @@
 #define MAIN_HAS_AGENT 0
 #endif
 
+// Power-button power-off (#265). Runs on every profile -- all V2 boards carry
+// the AXP2101 PWRON key, so this is not gated on BOARD_HAS_BATTERY. (battlog,
+// which 12c706d spawned alongside it, is not in this tree and is omitted.)
+#include "powerbtn.h"
+
 using namespace esp_brookesia;
 
 extern "C" void app_main(void)
@@ -129,6 +134,14 @@ extern "C" void app_main(void)
         BROOKESIA_LOGI("MicroFi EFM agent: disabled by board profile '%1%' (hasAgent=false)",
                        BOARD_PROFILE_NAME);
 #endif
+
+        /* Power-button power-off (#265): the AXP2101 PWRON long-press had no
+         * software handler, so holding the button did nothing. Poll the PMIC's
+         * long-press latch and issue the soft power-off on it. Runs on every
+         * board (no BOARD_HAS_BATTERY gate): on a battery board it is a true
+         * off; on the USB-only tuna-street board the PMU re-powers, so the same
+         * hold reads as a reboot -- still the wanted "button does something". */
+        powerbtn_start();
 
         boost::this_thread::sleep_for(boost::chrono::seconds(10));
 
